@@ -147,7 +147,7 @@ Each immutable row contains:
 
 Composite foreign keys keep every span in the same tenant, project, document, and parse snapshot. Database constraints reject empty source, invalid ordinals, malformed hashes, and missing or invalid location fields. The persistence path recomputes span hashes from `original_text` instead of trusting submitted hashes.
 
-Authenticated clients receive read access through RLS but no direct update or delete capability. Parse snapshot and span creation occur transactionally through one narrowly scoped database function. The function derives actor and project scope from `auth.uid()` and the visible document, validates writer membership, verifies the supplied source SHA against the document row, validates and hashes every span, inserts the snapshot and spans, and returns the immutable parse ID. Its `SECURITY DEFINER` surface uses an empty search path, fully qualified objects, fixed grants, and explicit authorization checks.
+Authenticated clients receive read access through RLS but no direct update, delete, or persistence-RPC capability. Parse snapshot and span creation occur transactionally through one narrowly scoped database function executable only by the server `service_role`. After the route authenticates the request, the function receives the initiating user ID explicitly, validates that actor's writer membership and exact document scope, verifies the supplied source SHA against the document row, validates and hashes every span, inserts the snapshot and spans, and returns the immutable parse ID. Its `SECURITY DEFINER` surface uses an empty search path, fully qualified objects, fixed grants, and explicit authorization checks rather than relying on RLS bypass.
 
 An immutable `DOCUMENT_PARSED` audit event is created in the same transaction. It records actor, project, document, parse ID, parser/version, detected format, span count, and result hash. It does not copy source text into the audit log.
 
@@ -171,7 +171,7 @@ RLS remains the final tenant/project isolation boundary for table reads and any 
 3. It downloads the private original through the same user's Supabase session.
 4. It recomputes the bytes' SHA-256 and compares it with immutable document metadata. Any mismatch stops with `source_integrity_failed` before parsing.
 5. It resolves a parser from validated bytes and filename, invokes it inline, and validates the returned span limits, locations, text, and hashes.
-6. It persists the complete parse and all spans atomically. No partial successful parse becomes visible.
+6. A separate server-only secret client passes the verified initiating user ID to the service-role-only RPC and persists the complete parse and all spans atomically. No partial successful parse becomes visible.
 7. It redirects to a fixed project/document URL with a fixed textual status code.
 8. The RFP list shows stored, parseable, parsed, or unsupported-for-parsing state. Writers see a parse action; read-only roles do not.
 9. An authorized source page shows parser/version, document hash, result hash, warnings, ordered locations, exact original text, and normalized text without rendering untrusted Markdown or HTML.
@@ -198,7 +198,7 @@ Raw parser, database, Storage, path, account, package, and stack details are nev
 
 Documents and extracted content remain untrusted data. React renders source as escaped text; the implementation uses no `dangerouslySetInnerHTML`, executes no embedded script or macro, follows no document instruction, and sends no content to AI. Tests use injection-shaped strings to prove they are displayed as source evidence rather than executed or interpreted.
 
-No OpenAI key or Supabase service-role key is added to browser or production application code. No service-role application endpoint is introduced.
+No OpenAI key or Supabase service-role/secret key is added to browser code. One minimal server-only client holds the Supabase backend secret solely for the trusted persistence RPC; it is separate from the user's SSR client, never logs the key, and disables session persistence, token refresh, and URL session detection.
 
 ## Accessibility
 

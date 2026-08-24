@@ -387,7 +387,7 @@ git commit -m "feat: add immutable source span schema"
 - Consumes: Task 4 tables and M05 membership roles.
 - Produces: `public.persist_document_parse(...) returns uuid`, project-member SELECT policies, writer-only guarded creation, canonical result-hash verification, idempotency, and one immutable `DOCUMENT_PARSED` audit event.
 
-- [ ] **Step 1: Write failing real-role persistence tests**
+- [x] **Step 1: Write failing real-role persistence tests**
 
 Insert synthetic Auth users, tenants, projects, memberships, and document metadata as in M06. Call the RPC with this payload shape:
 
@@ -416,19 +416,19 @@ The source-text SHA pinned by the same fixture is `4840fdebc6552efa7c7fa207d7101
 
 Assert editor/project-admin/tenant-admin same-scope success, viewer/reviewer denial, cross-project denial, source-SHA mismatch denial, malformed/empty span denial, database-recomputed original-text SHA, result-hash mismatch denial, identical-call idempotency, new parser-version snapshot creation, assigned read, anonymous zero access, direct insert/update/delete denial, and exactly one audit event per new snapshot.
 
-- [ ] **Step 2: Run pgTAP and confirm RED**
+- [x] **Step 2: Run pgTAP and confirm RED**
 
 Run: `pnpm test:rls`
 
 Expected: RPC-not-found and allowed-read assertions fail while denial and all M06 assertions remain secure.
 
-- [ ] **Step 3: Implement SELECT policies and guarded atomic RPC**
+- [x] **Step 3: Implement SELECT policies and guarded atomic RPC**
 
 Create project-member/tenant-admin SELECT policies on both tables. The `SECURITY DEFINER` RPC uses `set search_path = ''`, `auth.uid()`, explicit writer-role checks, the visible document's tenant/project/source hash, maximum JSON array length 20,000, sequential ordinals, location helper, 256-KiB per field, 16-MiB total, and `extensions.digest` recomputation.
 
-It verifies the fixed canonical result hash, returns an existing identical parse ID, otherwise inserts parse + spans + audit in one transaction. Revoke all default execution and grant only authenticated execute. Authenticated callers retain no direct table mutation grant.
+It verifies the fixed canonical result hash, returns an existing identical parse ID, otherwise inserts parse + spans + audit in one transaction. The RPC receives the route-verified initiating actor ID, rechecks that actor's exact writer scope, revokes all default execution, and grants execute only to `service_role`. Authenticated callers retain no direct table mutation or RPC grant.
 
-- [ ] **Step 4: Reset and verify isolation/immutability GREEN**
+- [x] **Step 4: Reset and verify isolation/immutability GREEN**
 
 Run: `pnpm supabase db reset --local --no-seed`
 
@@ -438,14 +438,16 @@ Run: `pnpm supabase db advisors --local --type security --level warn --fail-on e
 
 Run: `pnpm supabase db advisors --local --type performance --level warn --fail-on error`
 
-Expected: every M05-M07 assertion passes; unauthorized cross-project reads/writes are zero; both advisor result sets contain no error.
+Expected: all 196 M05-M07 assertions pass; authenticated direct RPC and unauthorized cross-project reads/writes are zero; both advisor result sets contain no error.
 
-- [ ] **Step 5: Commit persistence authorization**
+- [x] **Step 5: Commit persistence authorization**
 
 ```powershell
 git add -- supabase/tests/database/source_span_isolation_test.sql supabase/migrations/20260824093651_parser_source_span.sql
-git commit -m "feat: persist isolated source span snapshots"
+git commit -m "feat: persist trusted source span snapshots"
 ```
+
+Completed as `bddfc87` after the ADR-0002 trust-boundary RED, actor mutation RED, 196/196 GREEN, and both advisors reported no issues.
 
 ### Task 6: Server-side original integrity and parse route
 
@@ -455,13 +457,15 @@ git commit -m "feat: persist isolated source span snapshots"
 - Create: `src/lib/parsing/prepare-rfp-parse.test.ts`
 - Create: `src/app/projects/[projectId]/documents/[documentId]/parse/route.ts`
 
+- Create: `src/lib/supabase/trusted-server.ts`
+- Create: `src/lib/supabase/trusted-server.test.ts`
 **Interfaces:**
-- Consumes: Task 1 parser, optional Task 3 adapter, M06 `StorageProvider`, signed-in Supabase client, and Task 5 RPC.
+- Consumes: Task 1 parser, optional Task 3 adapter, M06 `StorageProvider`, signed-in Supabase client for user authorization/private Storage, a separate server-only Supabase secret client, and Task 5 RPC.
 - Produces: `createParserRegistry()`, `prepareRfpParse(document, storage, registry)`, and authenticated parse POST with fixed redirect codes.
 
 - [ ] **Step 1: Write failing orchestration tests**
 
-Use real `PlainTextDocumentParser` plus a fake `StorageProvider` that returns a Blob. Assert exact-byte SHA recheck, parser selection, payload mapping, unsupported extension/MIME denial, source-integrity mismatch before parser invocation, parser error sanitization, and injection-shaped source retained as data.
+Use real `PlainTextDocumentParser` plus a fake `StorageProvider` that returns a Blob. Assert exact-byte SHA recheck, parser selection, payload mapping, unsupported extension/MIME denial, source-integrity mismatch before parser invocation, parser error sanitization, and injection-shaped source retained as data. Separately prove the trusted server client fails closed without a backend secret, accepts only server-side secret/service-role variables, and sends no user session.
 
 ```ts
 await expect(
@@ -492,7 +496,7 @@ Map `.txt` to canonical `text/plain`; keep stored `media_type` only as untrusted
 
 - [ ] **Step 4: Implement authenticated route**
 
-`POST /projects/<projectId>/documents/<documentId>/parse` verifies claims, selects the exact RFP document through RLS, rejects non-writers with the same fixed unavailable response, downloads through `SupabasePrivateStorageProvider`, prepares the parse, calls `persist_document_parse`, and redirects relatively with one of `parsed`, `already_parsed`, or a fixed error code. It uses no service role and no AI gateway.
+`POST /projects/<projectId>/documents/<documentId>/parse` verifies claims, selects the exact RFP document through RLS, rejects non-writers with the same fixed unavailable response, downloads through `SupabasePrivateStorageProvider`, and prepares the parse using the user's SSR client. Only the final `persist_document_parse` call uses the separate server-only secret client and passes the verified user ID as `target_actor_user_id`. It redirects relatively with one of `parsed`, `already_parsed`, or a fixed error code and uses no AI gateway.
 
 - [ ] **Step 5: Run unit/type/lint checks for GREEN**
 

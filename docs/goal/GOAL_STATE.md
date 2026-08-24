@@ -4,12 +4,12 @@
 - Status: IN_PROGRESS
 - Current Milestone: M07 Parser/SourceSpan
 - Last Completed Milestone: M06 Private RFP Upload
-- Current Task: Execute the approved M07 Parser/SourceSpan plan from its first behavior RED
+- Current Task: M07 Task 6 original-integrity orchestration and trusted server parse route TDD
 - Blocked By: None
 - Human Checkpoint: None
-- Next Verification: `pnpm test -- src/lib/parsing/plain-text-document-parser.test.ts` must fail for the missing parser before production code
-- Last Commit: 244b54a docs: define m07 parser source span
-- Last Updated: 2026-08-24 17:54:15 +09:00
+- Next Verification: `pnpm test -- src/lib/parsing/prepare-rfp-parse.test.ts src/lib/supabase/trusted-server.test.ts` must fail because the Task 6 modules do not exist
+- Last Commit: bddfc87 feat: persist trusted source span snapshots
+- Last Updated: 2026-08-25 08:49:10 +09:00
 
 ## Milestones
 
@@ -22,7 +22,7 @@
 | M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
-| M07 | Parser/SourceSpan | IN_PROGRESS | Design and written specification approved; implementation plan prepared |
+| M07 | Parser/SourceSpan | IN_PROGRESS | Tasks 1-5 committed; trusted persistence RLS 196/196, actor mutation test effective, and both advisors clean; Task 6 next |
 | M08 | Requirement Extraction | NOT_STARTED | |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
