@@ -1,15 +1,15 @@
 # GOAL_STATE
 
 - Goal Version: V4.3
-- Status: PAUSED_AT_STAGE_GATE
-- Current Milestone: M04 Verification Foundation
+- Status: IN_PROGRESS
+- Current Milestone: M05 Auth / Tenant / Project / RLS
 - Last Completed Milestone: M04 Verification Foundation
-- Current Task: Await the user's explicit instruction before beginning M05 Auth/Tenant/Project/RLS
-- Blocked By: USER_STAGE_AUTHORIZATION
-- Human Checkpoint: STAGE_GATE_M05
-- Next Verification: after authorization, inspect M05 runbook/schema and run the first anonymous/cross-project pgTAP cases RED
+- Current Task: Write and verify the M05 database schema contract RED before adding schema behavior
+- Blocked By: NONE
+- Human Checkpoint: NONE
+- Next Verification: `pnpm test:rls` must fail on the absent M05 schema contract
 - Last Commit: 2a506da test: add verification foundation
-- Last Updated: 2026-08-24 12:57:25 +09:00
+- Last Updated: 2026-08-24 13:15:09 +09:00
 
 ## Milestones
 
@@ -20,7 +20,7 @@
 | M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified; runtime unchanged |
 | M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+; env/secret checks PASS; Next build and OpenNext Workers preview HTTP 200 |
 | M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
-| M05 | Auth/Tenant/Project/RLS | NOT_STARTED | |
+| M05 | Auth/Tenant/Project/RLS | IN_PROGRESS | Design and TDD execution plan recorded; production behavior not started |
 | M06 | Private RFP Upload | NOT_STARTED | |
 | M07 | Parser/SourceSpan | NOT_STARTED | |
 | M08 | Requirement Extraction | NOT_STARTED | |
