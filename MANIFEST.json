@@ -1,0 +1,308 @@
+{
+  "kit": "GOV Project OS Codex Starter Kit Goal Edition",
+  "version": "4.3",
+  "created_at": "2026-08-24",
+  "file_count": 60,
+  "files": [
+    {
+      "path": "00_READ_ME_FIRST.md",
+      "size_bytes": 2600,
+      "sha256": "2106c4028a1938f2b86afe6ae28c312225a3d2f31ca70229beeb183928d01ec0"
+    },
+    {
+      "path": "00_USE_THIS_WITH_GOAL_MODE.md",
+      "size_bytes": 554,
+      "sha256": "07b7d454fef270a5fa26308a3713cb76c430a96b5eaf1bb887f8f5dfc372a3f9"
+    },
+    {
+      "path": "ACCESSIBILITY.md",
+      "size_bytes": 465,
+      "sha256": "0daf21ab5f52ba81f29a4fe2dde2ed10db7b884108a03be76272b7a7d96a9485"
+    },
+    {
+      "path": "AGENTS.md",
+      "size_bytes": 2411,
+      "sha256": "e9406313c4eda585fac026de3f42edb06b4aa91dff55958baca2f9dbdc68edb5"
+    },
+    {
+      "path": "CODEX_DEVELOPMENT_GUIDE.md",
+      "size_bytes": 2634,
+      "sha256": "11a2dc25218979df89a540dcef26bacb4b768b34b846ca21f3a75d9b6352a975"
+    },
+    {
+      "path": "CODEX_GOAL_MASTER_PROMPT_V4.3.md",
+      "size_bytes": 25439,
+      "sha256": "50f6430baadf7d09e93d4414d7b7aa4878b89e8962b5db252a68598776c6529a"
+    },
+    {
+      "path": "CODEX_GOAL_MODE_OPERATING_GUIDE_V4.3.md",
+      "size_bytes": 3140,
+      "sha256": "7c2388516131ae10c89e8e1addef41e097997a34b868441d511d6dc1219eebfa"
+    },
+    {
+      "path": "CODEX_ZERO_TO_PRODUCT_RUNBOOK_V4.2.md",
+      "size_bytes": 26460,
+      "sha256": "694c316491d0f761bc00635d53a41b5a9994025166256130ed1a78f783adc90d"
+    },
+    {
+      "path": "COMMUNICATION_MANAGEMENT.md",
+      "size_bytes": 762,
+      "sha256": "4511c6562c1f1cc6a04d4811b56f8b99339c7402f676b1d288ff47bec4353b23"
+    },
+    {
+      "path": "DOMAIN_EXTENSION_MAP.md",
+      "size_bytes": 805,
+      "sha256": "b7488e2abe3e8e70ff6961209ffe31e93d4d9d55bbc9a29bc96d7a67908377ec"
+    },
+    {
+      "path": "GOV_PROJECT_OS_CODEX_LEAN_MASTER_SPEC_V4.2.md",
+      "size_bytes": 7628,
+      "sha256": "e56539b9f72b176a5e82fe489a2427116db6966cfc93de4996bcee5ca5f20d72"
+    },
+    {
+      "path": "MEETING_MINUTES_SPEC.md",
+      "size_bytes": 2930,
+      "sha256": "29cf4461de9d46b1d2ccd59a6541c01ebfcc992c43d585a2eb4681d9be24372c"
+    },
+    {
+      "path": "MILESTONE_ROADMAP.md",
+      "size_bytes": 1161,
+      "sha256": "cf1eebca8fa74f5768d022eb2941afd51665d7abcf6358f47a1e6cf96d4727dc"
+    },
+    {
+      "path": "OFFICIAL_REFERENCES.md",
+      "size_bytes": 1170,
+      "sha256": "748b2add1555815ff6a2c9ba1f77b1a2ca97e03eeafb1896ff53448f4eb6d45b"
+    },
+    {
+      "path": "PRIVACY.md",
+      "size_bytes": 444,
+      "sha256": "109c0099ccaa0e8586d21dd27687d7db950bfe9be173bdf325a0a0591dbc5ee7"
+    },
+    {
+      "path": "PRODUCT_LIFECYCLE.md",
+      "size_bytes": 1898,
+      "sha256": "3ca83dc021c2ab2b5d7f64a8e4a6b2308cad6a4386598031c2480aa00a8ef368"
+    },
+    {
+      "path": "QUICK_START_7_STEPS.md",
+      "size_bytes": 435,
+      "sha256": "054be4bc60a1e717212c6275304025eb5f6dbd441294653ec089c5e763e93f8d"
+    },
+    {
+      "path": "SECURITY.md",
+      "size_bytes": 719,
+      "sha256": "499e4f3e759ceb059e1c071071bbaac3a6fbf902855569c0e089609be9d0ff35"
+    },
+    {
+      "path": "SETUP_AND_RELEASE_CHECKLIST.md",
+      "size_bytes": 1150,
+      "sha256": "a3e2576b0ca81a61ce92ab06fe20015e7f922e387bc0ae5e1f590562557f44b4"
+    },
+    {
+      "path": "TEMPLATE_ARTIFACT_FACTORY.md",
+      "size_bytes": 2971,
+      "sha256": "e8a17d93561be82462faa75c40a5e4ee9400e65a1b9e991f091ff0d22f1c82a8"
+    },
+    {
+      "path": "TEMPLATE_FORMAT_MATRIX.md",
+      "size_bytes": 738,
+      "sha256": "7f4079c6ca4d9aeca6fabbac5aa113ba599f04f6e248ae7169d000742d009b48"
+    },
+    {
+      "path": "USER_INTERVENTION_CHECKPOINTS.md",
+      "size_bytes": 560,
+      "sha256": "1193886c06548037652b4576e25658554036f609057b75a0ccab99c06b7a5ec3"
+    },
+    {
+      "path": "codex-prompts/00_BOOTSTRAP.md",
+      "size_bytes": 633,
+      "sha256": "116da0efa45d6b5ab3f052d132bd631ffde9ee20e885037f3fc7713692b42ef7"
+    },
+    {
+      "path": "codex-prompts/01_FOUNDATION.md",
+      "size_bytes": 423,
+      "sha256": "1aa315062fa09f3ddfc49d2cc5c0ec12fe7d422bab734536d81ca2aec5745a7d"
+    },
+    {
+      "path": "codex-prompts/02_RFP_REQUIREMENT_BASELINE.md",
+      "size_bytes": 432,
+      "sha256": "1789bc44d1570d09e45d247b6d385e8668327bea9ab8dacadc0ce7d40bc1e72e"
+    },
+    {
+      "path": "codex-prompts/03_VERIFY_FIRST_SLICE.md",
+      "size_bytes": 451,
+      "sha256": "69477d216f5d978f1816527bb52e83905921c3a58b5ba385c76a83754ade755b"
+    },
+    {
+      "path": "codex-prompts/05_MEETING_MINUTES.md",
+      "size_bytes": 586,
+      "sha256": "81067d37f2dc9c266212fc11ed4ba90f6fb8bbe79b83cc9e06c5a67ceda75dac"
+    },
+    {
+      "path": "codex-prompts/06_TEMPLATE_ARTIFACT_FACTORY.md",
+      "size_bytes": 698,
+      "sha256": "549050e33431ca655127a465626a3ef606b51dd7427249fd73d1224e0f5d7167"
+    },
+    {
+      "path": "codex-prompts/07_RELEASE_VERIFY.md",
+      "size_bytes": 603,
+      "sha256": "c389ba97eeb0747c1ff50109505a3be65bcbe8689e1998eca34ceb3ed0165be4"
+    },
+    {
+      "path": "codex-prompts/step-by-step/00_ENVIRONMENT_SETUP.md",
+      "size_bytes": 284,
+      "sha256": "2e978b83856ea271af56f5028972a7763ca390dce8c2d6b8cfaae5f3c6278416"
+    },
+    {
+      "path": "codex-prompts/step-by-step/01_CLOUDFLARE_NEXT_SETUP.md",
+      "size_bytes": 299,
+      "sha256": "73cc1c15b7d324e13f0c4a8212a37d7915b5c1f26e093e11aa69e2a49ca60a37"
+    },
+    {
+      "path": "codex-prompts/step-by-step/02_STARTER_KIT_INTEGRATION.md",
+      "size_bytes": 278,
+      "sha256": "ad13b64f4e23612c0d72aa716c2d9929800325a1ad667218f294c29b07c43f5a"
+    },
+    {
+      "path": "codex-prompts/step-by-step/03_SUPABASE_LOCAL_SETUP.md",
+      "size_bytes": 294,
+      "sha256": "ae6ddc23e0efa6bad2d7d5e8ada5b3c1c305ffdedd66301589b39d9c27ff879b"
+    },
+    {
+      "path": "codex-prompts/step-by-step/04_VERIFICATION_FOUNDATION.md",
+      "size_bytes": 239,
+      "sha256": "067cad0dad0182f6f05cdeb7084ee87b632e4a06e56cd6ccc9de0e55b60b4ac8"
+    },
+    {
+      "path": "codex-prompts/step-by-step/05_AUTH_RLS.md",
+      "size_bytes": 256,
+      "sha256": "dc60ad7836ed3ce86d2f1408c7165435bbfeac26bbf399c42f832f6aeb4c2927"
+    },
+    {
+      "path": "codex-prompts/step-by-step/06_RFP_UPLOAD.md",
+      "size_bytes": 226,
+      "sha256": "50ab709b568f4285abc168731c389ad28789264b56ce8c7b370fd14a6e627072"
+    },
+    {
+      "path": "codex-prompts/step-by-step/07_SOURCE_SPAN.md",
+      "size_bytes": 247,
+      "sha256": "c383747bf80449532a45425677aebc290b2aa377090135d02603dd3269a42384"
+    },
+    {
+      "path": "codex-prompts/step-by-step/08_REQUIREMENT_EXTRACTION.md",
+      "size_bytes": 222,
+      "sha256": "b89c67cb7b910410b1e99dbfc01eacee7c933f06bf9eb413f300b0da3ae09bae"
+    },
+    {
+      "path": "codex-prompts/step-by-step/09_EVAL_HARNESS.md",
+      "size_bytes": 237,
+      "sha256": "22db9526bfeda00cb13cc0df0c6d62799bf1bb0d5e84e8a2db28667e754078a8"
+    },
+    {
+      "path": "codex-prompts/step-by-step/10_REQUIREMENT_WORKBENCH.md",
+      "size_bytes": 199,
+      "sha256": "7c14437d360eb278eceaadbbb45e4bf4a8dda816daa4ddc9ae77560faf96faa9"
+    },
+    {
+      "path": "codex-prompts/step-by-step/11_BASELINE_V1.md",
+      "size_bytes": 225,
+      "sha256": "afdf18b20f86782968220ae5360a84f33911caea692eb0eb67306880836c70e0"
+    },
+    {
+      "path": "codex-prompts/step-by-step/12_FIRST_SLICE_AUDIT.md",
+      "size_bytes": 216,
+      "sha256": "57ef40801fe746ae93dd3589cfacfe35a2cce1a86758844908b292dcc804170a"
+    },
+    {
+      "path": "codex-prompts/step-by-step/13_PROPOSAL.md",
+      "size_bytes": 201,
+      "sha256": "7a59513fca7b1c69b496145d030928d48cef75c6dec8412080fd567ecb66b7e9"
+    },
+    {
+      "path": "codex-prompts/step-by-step/14_CONTRACT_BASELINE.md",
+      "size_bytes": 231,
+      "sha256": "fcdfad4dd473aa1d9fa1c6206059dd40728ab167d8d5a6f4bd00992c7970c60d"
+    },
+    {
+      "path": "codex-prompts/step-by-step/15_WBS_DELIVERABLES.md",
+      "size_bytes": 221,
+      "sha256": "857cb6917a92455649a4e801803cca2a51d5c6367f7b012aff44380e341c7d2e"
+    },
+    {
+      "path": "codex-prompts/step-by-step/16_TEMPLATE_ARTIFACT.md",
+      "size_bytes": 250,
+      "sha256": "0f8bbd7a6e2cc4345674eafdbe1f88189b0e8291b78c10a072c6f2d017285b83"
+    },
+    {
+      "path": "codex-prompts/step-by-step/17_MEETING_MINUTES.md",
+      "size_bytes": 250,
+      "sha256": "16537751eeb8f8b46782f92b6f2f0715c19208279821e90a3d6a764ddd10dcdb"
+    },
+    {
+      "path": "codex-prompts/step-by-step/18_CHANGE_MANAGEMENT.md",
+      "size_bytes": 219,
+      "sha256": "42cea9da9c2a6c34431ffb691ee242bd3be1358f923a9c470326983fdcba4391"
+    },
+    {
+      "path": "codex-prompts/step-by-step/19_INSPECTION_EVIDENCE.md",
+      "size_bytes": 194,
+      "sha256": "76da412cd4b27025865cbaa84a3ecec6a205f06bf7a8e24661d17b8b30ad11b1"
+    },
+    {
+      "path": "codex-prompts/step-by-step/20_CLOSEOUT.md",
+      "size_bytes": 218,
+      "sha256": "e80a0509aa9f5eabcb50a2dde54fb2c1a4b77a52929bd32ec368c9f76559bd16"
+    },
+    {
+      "path": "codex-prompts/step-by-step/21_HOSTED_SUPABASE.md",
+      "size_bytes": 252,
+      "sha256": "94d91f2a5984e312a1fa5a43c6bf7040b93c9b0e28a43815cef30a76d667a159"
+    },
+    {
+      "path": "codex-prompts/step-by-step/22_CLOUDFLARE_DEPLOY.md",
+      "size_bytes": 230,
+      "sha256": "08cca1ddf6ae0a982e04c5eb6e307e38764fedcf9b87be7a948305d16890d108"
+    },
+    {
+      "path": "docs/goal/DECISIONS_TEMPLATE.md",
+      "size_bytes": 163,
+      "sha256": "17114c3cab1093131e75c7c833163e36aede8530aabd691606703ecf1966cb83"
+    },
+    {
+      "path": "docs/goal/GOAL_STATE_TEMPLATE.md",
+      "size_bytes": 1443,
+      "sha256": "6edfdf5d20eab396f6ff21bb4fead46446a763544fb066c2c9fac98f3c001a54"
+    },
+    {
+      "path": "docs/goal/HUMAN_CHECKPOINTS_TEMPLATE.md",
+      "size_bytes": 130,
+      "sha256": "c5814b70b4f2ec5294fd9578e17cdaae1bc00cec98a31d83c97e97fd9e41375e"
+    },
+    {
+      "path": "docs/goal/VERIFICATION_LOG_TEMPLATE.md",
+      "size_bytes": 135,
+      "sha256": "1214d0a1d75cdf6b87cd88fdc330c10d9d3bf26582a1ace1c53e23d00c709ef6"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-23-meeting-minutes-plan.md",
+      "size_bytes": 1166,
+      "sha256": "688d4d988f12c84301a21ec639b4937aacca66cba50400c24ee317fa66d1027c"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-23-template-artifact-plan.md",
+      "size_bytes": 2188,
+      "sha256": "3a320e87bcd0316db1a494f6d73ed1177bf27d3abc02c6e6c158cdf2ee62ef84"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-23-meeting-minutes-design.md",
+      "size_bytes": 593,
+      "sha256": "901f2810a003f272ba91cbb4ae37b0ad1f4585667f750a8e166cf936634c0878"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-23-template-artifact-design.md",
+      "size_bytes": 1232,
+      "sha256": "298141c59325382c58adccbd46dcc2c080f77583ec179bfabe103d21c1cefffe"
+    }
+  ]
+}

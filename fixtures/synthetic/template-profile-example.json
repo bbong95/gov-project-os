@@ -1,0 +1,30 @@
+{
+  "templateName": "합성 사업수행계획서 양식",
+  "format": "HWPX",
+  "mappings": [
+    {
+      "target": {
+        "type": "FORM_FIELD",
+        "id": "사업명"
+      },
+      "source": "project.name",
+      "required": true
+    },
+    {
+      "target": {
+        "type": "FORM_FIELD",
+        "id": "발주기관"
+      },
+      "source": "project.agency",
+      "required": true
+    },
+    {
+      "target": {
+        "type": "FORM_FIELD",
+        "id": "요구사항목록"
+      },
+      "source": "requirements.baseline.active",
+      "required": true
+    }
+  ]
+}
