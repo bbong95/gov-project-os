@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: PAUSED_AT_STAGE_GATE
-- Current Milestone: M06 Private RFP Upload
-- Last Completed Milestone: M05 Auth / Tenant / Project / RLS
-- Current Task: Await explicit user instruction before starting M06
-- Blocked By: STAGE_GATE_M06
-- Human Checkpoint: STAGE_GATE_M06
-- Next Verification: None until the user explicitly authorizes M06
-- Last Commit: 9810c30 fix: keep auth middleware deployable on workers
-- Last Updated: 2026-08-24 14:43:50 +09:00
+- Current Milestone: M07 Parser/SourceSpan
+- Last Completed Milestone: M06 Private RFP Upload
+- Current Task: Await explicit user instruction before starting M07
+- Blocked By: STAGE_GATE_M07
+- Human Checkpoint: STAGE_GATE_M07
+- Next Verification: None until the user explicitly authorizes M07
+- Last Commit: 42d9d3c feat: add accessible private rfp upload
+- Last Updated: 2026-08-24 17:11:02 +09:00
 
 ## Milestones
 
@@ -21,7 +21,7 @@
 | M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+; env/secret checks PASS; Next build and OpenNext Workers preview HTTP 200 |
 | M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
-| M06 | Private RFP Upload | NOT_STARTED | |
+| M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | NOT_STARTED | |
 | M08 | Requirement Extraction | NOT_STARTED | |
 | M09 | Eval Harness | NOT_STARTED | |
