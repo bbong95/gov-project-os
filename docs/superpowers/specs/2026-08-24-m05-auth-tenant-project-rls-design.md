@@ -72,7 +72,7 @@ No `SECURITY DEFINER` function is needed in this slice. Policies use non-recursi
 
 `/projects` validates identity with `getClaims()` and redirects unauthenticated requests to `/login`. It queries `projects` through the user's Supabase session and relies on RLS for row selection. Logout calls `signOut()` in a Server Action and redirects to `/login`.
 
-A Next.js `proxy.ts` refreshes Auth cookies using the current Supabase SSR cookie adapter and `getClaims()`. No service-role key or OpenAI key is introduced.
+A Next.js Edge `middleware.ts` refreshes Auth cookies using the current Supabase SSR cookie adapter and `getClaims()`. Next 16's `proxy.ts` is intentionally not used because it is fixed to the Node.js middleware runtime, which OpenNext Cloudflare 1.20.2 does not yet support. No service-role key or OpenAI key is introduced.
 
 ## Test Strategy
 

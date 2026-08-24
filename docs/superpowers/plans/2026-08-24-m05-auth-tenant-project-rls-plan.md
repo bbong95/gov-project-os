@@ -104,7 +104,7 @@ Expected: no error-level findings introduced by M05.
 - Create: `tests/e2e/auth.spec.ts`
 - Create: `src/lib/supabase/server.ts`
 - Create: `src/lib/supabase/proxy.ts`
-- Create: `src/proxy.ts`
+- Create: `src/middleware.ts`
 - Create: `src/app/login/actions.ts`
 - Create: `src/app/login/page.tsx`
 - Create: `src/app/projects/actions.ts`
@@ -118,21 +118,21 @@ Expected: no error-level findings introduced by M05.
 - Consumes: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, Supabase Auth, and the Task 2 project policies.
 - Produces: `/login`, `/projects`, `login(FormData)`, `logout()`, `createServerSupabaseClient()`, and `updateSession(request)`.
 
-- [ ] **Step 1: Write the real browser behavior test**
+- [x] **Step 1: Write the real browser behavior test**
 
 Create a runtime-only synthetic user and assigned/cross-tenant projects with a service credential held only in test memory. Drive the login form by accessible labels and keyboard, assert only the assigned project appears, then activate logout by keyboard and assert the login heading returns.
 
-- [ ] **Step 2: Run the auth E2E test to verify RED**
+- [x] **Step 2: Run the auth E2E test to verify RED**
 
 Run: `pnpm exec playwright test tests/e2e/auth.spec.ts`
 
 Expected: the test fails because `/login` and its labelled controls do not exist.
 
-- [ ] **Step 3: Add the minimum server client, proxy, actions, and pages**
+- [x] **Step 3: Add the minimum server client, Edge middleware, actions, and pages**
 
 Use the SSR cookie adapter, `signInWithPassword`, `getClaims`, RLS-backed `.from("projects").select(...)`, and `signOut`. Return one generic Korean authentication error and fixed redirects only.
 
-- [ ] **Step 4: Run targeted unit and E2E tests for GREEN**
+- [x] **Step 4: Run targeted unit and E2E tests for GREEN**
 
 Run: `pnpm test -- src/app/page.test.tsx`
 
@@ -153,20 +153,20 @@ Expected: the home semantic contract and real login/project/logout flow pass.
 - Consumes: all M05 database and UI behavior.
 - Produces: fresh M05 verification evidence and the M06 stage gate without starting M06.
 
-- [ ] **Step 1: Write and observe accessibility RED if the new screens violate the contract**
+- [x] **Step 1: Write and observe accessibility RED if the new screens violate the contract**
 
 Scan `/login` and the signed-in `/projects` page with the existing WCAG A/AA axe tags, and drive the critical controls using keyboard locators.
 
-- [ ] **Step 2: Apply only fixes required by the failing accessibility behavior**
+- [x] **Step 2: Apply only fixes required by the failing accessibility behavior**
 
 Keep semantic landmarks, visible focus, labels, accessible names, and text status. Re-run the targeted scan until GREEN.
 
-- [ ] **Step 3: Run the fresh affected verification set**
+- [x] **Step 3: Run the fresh affected verification set**
 
 Run: `pnpm install --frozen-lockfile`, `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:eval`, `pnpm test:rls`, `pnpm test:e2e`, `pnpm test:a11y`, `pnpm audit --audit-level high`, `pnpm build`, and the existing Linux Workers preview HTTP probe.
 
 Expected: zero failures, zero unauthorized cross-project reads/writes, no high dependency vulnerability, and HTTP 200 from the Workers preview.
 
-- [ ] **Step 4: Persist evidence and commit coherent changes**
+- [x] **Step 4: Persist evidence and commit coherent changes**
 
 Record every RED/GREEN and final command with exit code and counts. Set M05 complete and M06 not started, then commit database behavior, Auth UI behavior, and state evidence as small coherent commits.
