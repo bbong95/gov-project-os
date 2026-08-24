@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "../../lib/supabase/server";
 import { logout } from "./actions";
@@ -43,8 +44,14 @@ export default async function ProjectsPage() {
 				) : projects && projects.length > 0 ? (
 					<ul className="mt-4 grid gap-3">
 						{projects.map((project) => (
-							<li className="rounded-md border border-slate-300 bg-white p-4 font-medium" key={project.id}>
-								{project.name}
+							<li className="rounded-md border border-slate-300 bg-white" key={project.id}>
+								<Link
+									className="flex min-h-11 items-center justify-between gap-4 rounded-md p-4 font-medium hover:bg-blue-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+									href={`/projects/${project.id}/rfp`}
+								>
+									<span>{project.name}</span>
+									<span className="text-sm text-blue-800">RFP 원본</span>
+								</Link>
 							</li>
 						))}
 					</ul>

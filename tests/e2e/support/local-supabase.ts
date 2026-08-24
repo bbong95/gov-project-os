@@ -141,6 +141,12 @@ export async function createLocalAuthFixture(): Promise<LocalAuthFixture> {
 }
 
 export type LocalRfpFixture = {
+	assignedEmail: string;
+	assignedPassword: string;
+	assignedProjectName: string;
+	crossEmail: string;
+	crossPassword: string;
+	crossTenantProjectName: string;
 	assignedTenantId: string;
 	assignedProjectId: string;
 	assignedUserId: string;
@@ -304,6 +310,12 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 	}
 
 	return {
+		assignedEmail,
+		assignedPassword,
+		assignedProjectName: `M06 합성 프로젝트 A ${suffix.slice(0, 8)}`,
+		crossEmail,
+		crossPassword,
+		crossTenantProjectName: `M06 합성 프로젝트 B ${suffix.slice(0, 8)}`,
 		assignedTenantId,
 		assignedProjectId,
 		assignedUserId,
