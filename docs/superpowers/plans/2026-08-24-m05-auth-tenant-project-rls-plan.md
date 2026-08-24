@@ -67,21 +67,21 @@ Expected: schema and runner smoke tests pass.
 - Consumes: the Task 1 schema and `auth.uid()` request claims.
 - Produces: operation-specific select/update policies enforcing the role matrix.
 
-- [ ] **Step 1: Write behavior tests with synthetic tenant, project, user, and membership rows**
+- [x] **Step 1: Write behavior tests with synthetic tenant, project, user, and membership rows**
 
 Use real `anon` and `authenticated` PostgreSQL roles. Assert assigned-project read succeeds, cross-project read returns zero, assigned editor update succeeds, cross-project update returns zero, anonymous select is denied, and viewer/reviewer writes return zero.
 
-- [ ] **Step 2: Run the isolation test to verify RED**
+- [x] **Step 2: Run the isolation test to verify RED**
 
 Run: `pnpm test:rls`
 
 Expected: assigned read/write assertions fail because RLS has no policies.
 
-- [ ] **Step 3: Add minimal select/update policies**
+- [x] **Step 3: Add minimal select/update policies**
 
 Use `(select auth.uid())` and indexed `EXISTS` membership lookups. Add no insert/delete or membership-management policies.
 
-- [ ] **Step 4: Reset and verify GREEN**
+- [x] **Step 4: Reset and verify GREEN**
 
 Run: `pnpm supabase db reset --local --no-seed`
 
@@ -89,7 +89,7 @@ Run: `pnpm test:rls`
 
 Expected: all schema, runner, and project-isolation assertions pass with unauthorized read/write count zero.
 
-- [ ] **Step 5: Run database advisors**
+- [x] **Step 5: Run database advisors**
 
 Run: `pnpm supabase db advisors --local --type security --level warn --fail-on error`
 

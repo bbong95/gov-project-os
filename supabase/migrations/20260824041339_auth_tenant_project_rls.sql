@@ -103,3 +103,127 @@ alter default privileges for role postgres in schema public
 
 alter default privileges for role postgres in schema public
 	revoke usage, select on sequences from anon, authenticated, service_role;
+create policy "tenant memberships visible to member"
+on public.tenant_memberships
+for select
+to authenticated
+using (
+	(select auth.uid()) is not null
+	and user_id = (select auth.uid())
+);
+
+create policy "project memberships visible to member or tenant admin"
+on public.project_memberships
+for select
+to authenticated
+using (
+	(select auth.uid()) is not null
+	and (
+		user_id = (select auth.uid())
+		or exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = project_memberships.tenant_id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+);
+
+create policy "tenants visible to project member or tenant admin"
+on public.tenants
+for select
+to authenticated
+using (
+	(select auth.uid()) is not null
+	and (
+		exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = tenants.id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+		or exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.tenant_id = tenants.id
+				and project_membership.user_id = (select auth.uid())
+		)
+	)
+);
+
+create policy "projects visible to project member or tenant admin"
+on public.projects
+for select
+to authenticated
+using (
+	(select auth.uid()) is not null
+	and (
+		exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.tenant_id = projects.tenant_id
+				and project_membership.project_id = projects.id
+				and project_membership.user_id = (select auth.uid())
+		)
+		or exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = projects.tenant_id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+);
+
+create policy "projects mutable by project writer or tenant admin"
+on public.projects
+for update
+to authenticated
+using (
+	(select auth.uid()) is not null
+	and (
+		exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.tenant_id = projects.tenant_id
+				and project_membership.project_id = projects.id
+				and project_membership.user_id = (select auth.uid())
+				and project_membership.role in (
+					'EDITOR'::public.membership_role,
+					'PROJECT_ADMIN'::public.membership_role
+				)
+		)
+		or exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = projects.tenant_id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+)
+with check (
+	(select auth.uid()) is not null
+	and (
+		exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.tenant_id = projects.tenant_id
+				and project_membership.project_id = projects.id
+				and project_membership.user_id = (select auth.uid())
+				and project_membership.role in (
+					'EDITOR'::public.membership_role,
+					'PROJECT_ADMIN'::public.membership_role
+				)
+		)
+		or exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = projects.tenant_id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+);

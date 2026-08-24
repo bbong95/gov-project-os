@@ -4,12 +4,12 @@
 - Status: IN_PROGRESS
 - Current Milestone: M05 Auth / Tenant / Project / RLS
 - Last Completed Milestone: M04 Verification Foundation
-- Current Task: Write and verify project-isolation behavior RED before adding RLS policies
+- Current Task: Write and verify the real browser login/project/logout behavior RED before Auth UI implementation
 - Blocked By: NONE
 - Human Checkpoint: NONE
-- Next Verification: `pnpm test:rls` must fail assigned read/write assertions while RLS has no policies
+- Next Verification: `pnpm exec playwright test tests/e2e/auth.spec.ts` must fail because `/login` does not exist
 - Last Commit: 2a506da test: add verification foundation
-- Last Updated: 2026-08-24 13:25:48 +09:00
+- Last Updated: 2026-08-24 13:33:07 +09:00
 
 ## Milestones
 
@@ -20,7 +20,7 @@
 | M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified; runtime unchanged |
 | M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+; env/secret checks PASS; Next build and OpenNext Workers preview HTTP 200 |
 | M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
-| M05 | Auth/Tenant/Project/RLS | IN_PROGRESS | Schema contract RED 20/21 then minimal schema GREEN 23/23; RLS policies not started |
+| M05 | Auth/Tenant/Project/RLS | IN_PROGRESS | RLS behavior RED 14/20 then GREEN 43/43; local security/performance advisors report no issues; Auth UI not started |
 | M06 | Private RFP Upload | NOT_STARTED | |
 | M07 | Parser/SourceSpan | NOT_STARTED | |
 | M08 | Requirement Extraction | NOT_STARTED | |
