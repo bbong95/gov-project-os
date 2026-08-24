@@ -215,7 +215,7 @@ git commit -m "feat: add deterministic source span parser"
 - Consumes: kordoc 4.9.1, Node 24.19.0, Wrangler 4.125.0, compatibility date 2026-08-20, and synthetic HWPX/PDF/XLSX/DOCX inputs. HWP remains `NOT_RUN_NO_SYNTHETIC_FIXTURE` unless a clearly synthetic fixture is generated or obtained without customer data.
 - Produces: a committed matrix whose only outcome values are `PASS`, `FAIL_BUILD`, `FAIL_RUNTIME`, `FAIL_CONTRACT`, or `NOT_RUN_NO_SYNTHETIC_FIXTURE`; optionally an unaccepted ADR draft with exact evidence.
 
-- [ ] **Step 1: Build the disposable probe without changing production dependencies**
+- [x] **Step 1: Build the disposable probe without changing production dependencies**
 
 Create a scratch package and Worker entry under `temp/m07-kordoc-spike`. The Worker accepts fixture bytes by POST, calls `parse(arrayBuffer, { ocr: false, formulaOcr: false })`, and returns only success, detected type, warning codes, page mode, block count, and extracted non-empty text length. It never returns fixture bytes or full text.
 
@@ -227,7 +227,7 @@ pnpm --dir temp/m07-kordoc-spike add --save-exact kordoc@4.9.1 jszip@3.10.1
 
 Generate explicitly synthetic HWPX with kordoc's generator, minimal DOCX/XLSX ZIPs with `jszip`, and a minimal text-layer PDF. Do not copy kordoc repository corpora or public-sector documents.
 
-- [ ] **Step 2: Probe package import and bare Workers bundle**
+- [x] **Step 2: Probe package import and bare Workers bundle**
 
 Run the scratch Node import/parse probe, then:
 
@@ -237,19 +237,19 @@ pnpm exec wrangler deploy temp/m07-kordoc-spike/worker.ts --dry-run --outdir tem
 
 Expected: record the actual exit code and bundle size. Import-only success is insufficient.
 
-- [ ] **Step 3: Probe actual local Workers runtime per format**
+- [x] **Step 3: Classify actual local Workers runtime per format — not run because no deployable bundle exists**
 
 Start the scratch Worker with Wrangler local runtime on loopback, POST each synthetic fixture, capture only the structured summary, and stop the process. Test HWPX, PDF, XLSX, and DOCX independently. Mark HWP `NOT_RUN_NO_SYNTHETIC_FIXTURE` unless a synthetic-only source is proven.
 
 For each format, require non-empty extracted text, correct detected format, no subprocess/model download/OCR, and a real page/sheet/section location signal when the library exposes one.
 
-- [ ] **Step 4: Record the immutable compatibility report**
+- [x] **Step 4: Record the immutable compatibility report**
 
 The report includes exact versions, install mode, dependency audit, Worker bundle exit/size, runtime exit, per-format outcome, location precision, warning codes, and sanitized failure excerpt. It explicitly lists the MIME types allowed into production; every non-PASS format remains disabled.
 
 If a format fails, create the ADR draft with `Status: DRAFT-NOT-ACCEPTED`, current-architecture failure evidence, security/privacy impact, rollback, and the statement that no parser service or infrastructure is authorized.
 
-- [ ] **Step 5: Remove the disposable scratch directory safely and commit evidence**
+- [x] **Step 5: Remove the disposable scratch directory safely and commit evidence**
 
 Resolve the absolute scratch path, verify it is below the repository's ignored `temp` directory, then remove only `temp/m07-kordoc-spike`. Confirm `package.json` and `pnpm-lock.yaml` are unchanged.
 
@@ -273,13 +273,13 @@ Omit the ADR path from `git add` when every tested format passes.
 - Consumes: only MIME types marked `PASS` by Task 2 and Task 1 parser types/hash functions.
 - Produces: `KORDOC_WORKERS_SUPPORTED_MIME_TYPES` and `KordocDocumentParser`; produces no code or dependency when Task 2 has zero PASS binary formats.
 
-- [ ] **Step 1: Apply the evidence branch**
+- [x] **Step 1: Apply the evidence branch — N/A, zero Workers-compatible binary formats**
 
 If no binary format is `PASS`, mark this task `N/A — zero compatible formats` in the plan execution record and retain the TXT-only registry. Do not add kordoc to the production package.
 
 If at least one binary format is `PASS`, continue with every following step for exactly those formats.
 
-- [ ] **Step 2: Write failing per-format adapter contracts**
+- [x] **Step 2: N/A — no PASS format, so no production adapter contract is authorized**
 
 For each PASS fixture, assert `supports()` only for its canonical MIME, byte-level format mismatch denial, structured block-to-span conversion, original block/cell text rather than rendered Markdown, real location precision, deterministic normalization/hash, and allowlisted warning codes. Assert all FAIL/NOT_RUN MIME types return false.
 
@@ -287,13 +287,13 @@ Run: `pnpm test -- src/lib/parsing/kordoc-document-parser.test.ts`
 
 Expected: FAIL with module-not-found before the dependency/adapter exists.
 
-- [ ] **Step 3: Add exact dependency and minimum adapter**
+- [x] **Step 3: N/A — production dependency remains unchanged**
 
 Run: `pnpm add --save-exact kordoc@4.9.1`
 
 The adapter calls kordoc in buffer mode only, with OCR/formula OCR disabled. It recursively walks structured blocks, skips empty evidence, labels approximate section boundaries, and never invents a page/sheet/cell value. `supports()` is backed by a readonly set containing only Task 2 PASS MIME types.
 
-- [ ] **Step 4: Verify unit, dependency, OpenNext bundle, and Workers runtime**
+- [x] **Step 4: N/A — Task 2 bundle and audit evidence blocks the adapter**
 
 Run: `pnpm test -- src/lib/parsing/kordoc-document-parser.test.ts`
 
@@ -305,7 +305,7 @@ Run the tracked-source Linux OpenNext Workers build/runtime probe from Task 8 wi
 
 If any check fails, remove the adapter and production dependency, restore the lockfile through `pnpm remove kordoc`, update the report outcome, and keep only the compatibility evidence/ADR draft. Do not weaken the gate.
 
-- [ ] **Step 5: Commit only a verified adapter**
+- [x] **Step 5: N/A — no adapter commit is created**
 
 ```powershell
 git add -- package.json pnpm-lock.yaml src/lib/parsing/kordoc-document-parser.ts src/lib/parsing/kordoc-document-parser.test.ts docs/compatibility/2026-08-24-kordoc-workers.md
