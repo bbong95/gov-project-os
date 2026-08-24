@@ -1,6 +1,6 @@
 begin;
 
-select plan(31);
+select plan(34);
 
 select ok(
 	exists (
@@ -239,8 +239,41 @@ select is(
 			and tablename = 'objects'
 			and policyname like 'rfp originals %'
 	),
-	0,
-	'Storage access policies are not introduced before their behavior test'
+	3,
+	'Storage has only the three M06 RFP original policies'
+);
+
+select is(
+	(
+		select string_agg(command, ',' order by command)
+		from (
+			select distinct cmd as command
+			from pg_policies
+			where schemaname = 'storage'
+				and tablename = 'objects'
+				and policyname like 'rfp originals %'
+		) as commands
+	),
+	'DELETE,INSERT,SELECT',
+	'Storage permits insert, authenticated get, and orphan compensation but no update'
+);
+
+select ok(
+	to_regprocedure('private.is_registered_rfp_original(text,text)') is not null,
+	'private registered-original lookup exists'
+);
+
+select ok(
+	coalesce(
+		(
+			select prosecdef
+				and proconfig @> array['search_path=""']::text[]
+			from pg_proc
+			where oid = to_regprocedure('private.is_registered_rfp_original(text,text)')
+		),
+		false
+	),
+	'registered-original lookup is security definer with an empty search_path'
 );
 
 select * from finish();

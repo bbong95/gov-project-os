@@ -192,3 +192,98 @@ with check (
 		)
 	)
 );
+
+grant usage on schema private to authenticated;
+
+create function private.is_registered_rfp_original(target_bucket text, target_path text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+	select exists (
+		select 1
+		from public.documents as document
+		where document.storage_bucket = target_bucket
+			and document.storage_path = target_path
+	);
+$$;
+
+revoke all on function private.is_registered_rfp_original(text, text)
+	from public, anon, authenticated;
+grant execute on function private.is_registered_rfp_original(text, text) to authenticated;
+
+create policy "rfp originals insert by project writer"
+on storage.objects
+for insert
+to authenticated
+with check (
+	bucket_id = 'rfp-originals'
+	and owner_id = (select auth.uid())::text
+	and cardinality(storage.foldername(name)) = 2
+	and storage.filename(name) = 'original'
+	and (storage.foldername(name))[2]
+		~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+	and (
+		exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.project_id::text = (storage.foldername(name))[1]
+				and project_membership.user_id = (select auth.uid())
+				and project_membership.role in (
+					'EDITOR'::public.membership_role,
+					'PROJECT_ADMIN'::public.membership_role
+				)
+		)
+		or exists (
+			select 1
+			from public.projects as project
+			join public.tenant_memberships as tenant_membership
+				on tenant_membership.tenant_id = project.tenant_id
+			where project.id::text = (storage.foldername(name))[1]
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+);
+
+create policy "rfp originals authenticated project download"
+on storage.objects
+for select
+to authenticated
+using (
+	bucket_id = 'rfp-originals'
+	and (
+		(
+			storage.allow_any_operation(array[
+				'object.get_authenticated',
+				'object.get_authenticated_info'
+			])
+			and exists (
+				select 1
+				from public.documents as document
+				where document.storage_bucket = storage.objects.bucket_id
+					and document.storage_path = storage.objects.name
+			)
+		)
+		or (
+			storage.allow_any_operation(array[
+				'object.delete',
+				'object.delete_many'
+			])
+			and owner_id = (select auth.uid())::text
+			and not private.is_registered_rfp_original(bucket_id, name)
+		)
+	)
+);
+
+create policy "rfp originals remove unregistered owner"
+on storage.objects
+for delete
+to authenticated
+using (
+	bucket_id = 'rfp-originals'
+	and owner_id = (select auth.uid())::text
+	and not private.is_registered_rfp_original(bucket_id, name)
+);
