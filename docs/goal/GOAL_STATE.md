@@ -1,15 +1,15 @@
 # GOAL_STATE
 
 - Goal Version: V4.3
-- Status: PAUSED_AT_STAGE_GATE
+- Status: IN_PROGRESS
 - Current Milestone: M07 Parser/SourceSpan
 - Last Completed Milestone: M06 Private RFP Upload
-- Current Task: Await explicit user instruction before starting M07
-- Blocked By: STAGE_GATE_M07
-- Human Checkpoint: STAGE_GATE_M07
-- Next Verification: None until the user explicitly authorizes M07
-- Last Commit: 42d9d3c feat: add accessible private rfp upload
-- Last Updated: 2026-08-24 17:11:02 +09:00
+- Current Task: Execute the approved M07 Parser/SourceSpan plan from its first behavior RED
+- Blocked By: None
+- Human Checkpoint: None
+- Next Verification: `pnpm test -- src/lib/parsing/plain-text-document-parser.test.ts` must fail for the missing parser before production code
+- Last Commit: 244b54a docs: define m07 parser source span
+- Last Updated: 2026-08-24 17:54:15 +09:00
 
 ## Milestones
 
@@ -22,7 +22,7 @@
 | M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
-| M07 | Parser/SourceSpan | NOT_STARTED | |
+| M07 | Parser/SourceSpan | IN_PROGRESS | Design and written specification approved; implementation plan prepared |
 | M08 | Requirement Extraction | NOT_STARTED | |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
