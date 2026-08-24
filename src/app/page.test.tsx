@@ -8,4 +8,10 @@ describe("Home", () => {
 
 		expect(screen.getByRole("heading", { level: 1, name: "GOV Project OS" })).toBeVisible();
 	});
+
+	it("offers an accessible login entry point", () => {
+		render(<Home />);
+
+		expect(screen.getByRole("link", { name: "로그인" })).toHaveAttribute("href", "/login");
+	});
 });
