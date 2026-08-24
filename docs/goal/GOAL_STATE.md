@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M03 Supabase Local
-- Last Completed Milestone: M02 Starter Kit/Governance
-- Current Task: Install the project-local Supabase CLI, initialize once, start the local stack, and verify API/Studio without exposing secrets
+- Current Milestone: M04 Verification Foundation
+- Last Completed Milestone: M03 Supabase Local
+- Current Task: Read the M04 runbook and current test surface, then add real verification runners with a RED/GREEN smoke behavior
 - Blocked By: NONE
 - Human Checkpoint: NONE
-- Next Verification: `docker info`; Supabase CLI version/init/start/status; local API and Studio HTTP probes
-- Last Commit: fe56039 docs: integrate starter kit governance baseline
-- Last Updated: 2026-08-24 11:18:21 +09:00
+- Next Verification: inspect M04 specs and existing scripts; run the first verification-runner smoke test RED
+- Last Commit: d6604c8 chore: add local supabase environment
+- Last Updated: 2026-08-24 12:05:06 +09:00
 
 ## Milestones
 
@@ -18,8 +18,8 @@
 | M00 | Environment | COMPLETE | Fresh exit 0: PowerShell 7.6.4, Git 2.53.0, Node 24.19.0, npm 11.17.0, pnpm 11.19.0, Docker CLI/Server 29.7.2 |
 | M01 | Cloudflare Next/OpenNext | COMPLETE | Next dev HTTP 200; OpenNext Cloudflare Workers preview HTTP 200 |
 | M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified; runtime unchanged |
-| M03 | Supabase Local | IN_PROGRESS | |
-| M04 | Verification Foundation | NOT_STARTED | |
+| M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+; env/secret checks PASS; Next build and OpenNext Workers preview HTTP 200 |
+| M04 | Verification Foundation | IN_PROGRESS | |
 | M05 | Auth/Tenant/Project/RLS | NOT_STARTED | |
 | M06 | Private RFP Upload | NOT_STARTED | |
 | M07 | Parser/SourceSpan | NOT_STARTED | |
