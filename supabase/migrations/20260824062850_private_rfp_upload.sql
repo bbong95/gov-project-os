@@ -139,3 +139,56 @@ set name = excluded.name,
 	public = excluded.public,
 	file_size_limit = excluded.file_size_limit,
 	allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "documents visible to project member or tenant admin"
+on public.documents
+for select
+to authenticated
+using (
+	(select auth.uid()) is not null
+	and (
+		exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.tenant_id = documents.tenant_id
+				and project_membership.project_id = documents.project_id
+				and project_membership.user_id = (select auth.uid())
+		)
+		or exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = documents.tenant_id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+);
+
+create policy "documents insertable by project writer or tenant admin"
+on public.documents
+for insert
+to authenticated
+with check (
+	(select auth.uid()) is not null
+	and created_by = (select auth.uid())
+	and (
+		exists (
+			select 1
+			from public.project_memberships as project_membership
+			where project_membership.tenant_id = documents.tenant_id
+				and project_membership.project_id = documents.project_id
+				and project_membership.user_id = (select auth.uid())
+				and project_membership.role in (
+					'EDITOR'::public.membership_role,
+					'PROJECT_ADMIN'::public.membership_role
+				)
+		)
+		or exists (
+			select 1
+			from public.tenant_memberships as tenant_membership
+			where tenant_membership.tenant_id = documents.tenant_id
+				and tenant_membership.user_id = (select auth.uid())
+				and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+		)
+	)
+);
