@@ -33,23 +33,23 @@
 - Consumes: Supabase local PostgreSQL 17 and pgTAP runner.
 - Produces: `public.membership_role`, `public.tenants`, `public.tenant_memberships`, `public.projects`, and `public.project_memberships` with keys, constraints, indexes, grants, and RLS enabled.
 
-- [ ] **Step 1: Write the failing schema test**
+- [x] **Step 1: Write the failing schema test**
 
 Assert the enum labels, four tables, primary/composite foreign keys, RLS flags, role constraints, indexes, and least-privilege grants with pgTAP catalog queries.
 
-- [ ] **Step 2: Run the schema test to verify RED**
+- [x] **Step 2: Run the schema test to verify RED**
 
 Run: `pnpm test:rls`
 
 Expected: assertion failures report the absent M05 enum/tables; the runner itself remains valid.
 
-- [ ] **Step 3: Create the migration through the CLI and add minimal schema**
+- [x] **Step 3: Create the migration through the CLI and add minimal schema**
 
 Run: `pnpm supabase migration new auth_tenant_project_rls`
 
 Add the enum, four tables, constraints, indexes, explicit revokes/grants, and `ENABLE ROW LEVEL SECURITY`. Do not add access policies yet.
 
-- [ ] **Step 4: Reset and verify the schema test is GREEN**
+- [x] **Step 4: Reset and verify the schema test is GREEN**
 
 Run: `pnpm supabase db reset --local --no-seed`
 
