@@ -1,15 +1,15 @@
 # GOAL_STATE
 
 - Goal Version: V4.3
-- Status: IN_PROGRESS
+- Status: PAUSED_AT_STAGE_GATE
 - Current Milestone: M04 Verification Foundation
-- Last Completed Milestone: M03 Supabase Local
-- Current Task: Read the M04 runbook and current test surface, then add real verification runners with a RED/GREEN smoke behavior
-- Blocked By: NONE
-- Human Checkpoint: NONE
-- Next Verification: inspect M04 specs and existing scripts; run the first verification-runner smoke test RED
-- Last Commit: d6604c8 chore: add local supabase environment
-- Last Updated: 2026-08-24 12:05:06 +09:00
+- Last Completed Milestone: M04 Verification Foundation
+- Current Task: Await the user's explicit instruction before beginning M05 Auth/Tenant/Project/RLS
+- Blocked By: USER_STAGE_AUTHORIZATION
+- Human Checkpoint: STAGE_GATE_M05
+- Next Verification: after authorization, inspect M05 runbook/schema and run the first anonymous/cross-project pgTAP cases RED
+- Last Commit: 2a506da test: add verification foundation
+- Last Updated: 2026-08-24 12:57:25 +09:00
 
 ## Milestones
 
@@ -19,7 +19,7 @@
 | M01 | Cloudflare Next/OpenNext | COMPLETE | Next dev HTTP 200; OpenNext Cloudflare Workers preview HTTP 200 |
 | M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified; runtime unchanged |
 | M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+; env/secret checks PASS; Next build and OpenNext Workers preview HTTP 200 |
-| M04 | Verification Foundation | IN_PROGRESS | |
+| M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
 | M05 | Auth/Tenant/Project/RLS | NOT_STARTED | |
 | M06 | Private RFP Upload | NOT_STARTED | |
 | M07 | Parser/SourceSpan | NOT_STARTED | |
