@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M02 Starter Kit/Governance
-- Last Completed Milestone: M01 Cloudflare Next/OpenNext
-- Current Task: Verify and commit the highest-version Starter Kit governance baseline without overwriting generated Cloudflare files
+- Current Milestone: M03 Supabase Local
+- Last Completed Milestone: M02 Starter Kit/Governance
+- Current Task: Install the project-local Supabase CLI, initialize once, start the local stack, and verify API/Studio without exposing secrets
 - Blocked By: NONE
 - Human Checkpoint: NONE
-- Next Verification: required M02 governance files present and consistent; generated runtime files preserved
-- Last Commit: 08629b2 chore: bootstrap cloudflare next runtime
-- Last Updated: 2026-08-24 11:11:11 +09:00
+- Next Verification: `docker info`; Supabase CLI version/init/start/status; local API and Studio HTTP probes
+- Last Commit: fe56039 docs: integrate starter kit governance baseline
+- Last Updated: 2026-08-24 11:18:21 +09:00
 
 ## Milestones
 
@@ -17,8 +17,8 @@
 |---|---|---|---|
 | M00 | Environment | COMPLETE | Fresh exit 0: PowerShell 7.6.4, Git 2.53.0, Node 24.19.0, npm 11.17.0, pnpm 11.19.0, Docker CLI/Server 29.7.2 |
 | M01 | Cloudflare Next/OpenNext | COMPLETE | Next dev HTTP 200; OpenNext Cloudflare Workers preview HTTP 200 |
-| M02 | Starter Kit/Governance | IN_PROGRESS | |
-| M03 | Supabase Local | NOT_STARTED | |
+| M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified; runtime unchanged |
+| M03 | Supabase Local | IN_PROGRESS | |
 | M04 | Verification Foundation | NOT_STARTED | |
 | M05 | Auth/Tenant/Project/RLS | NOT_STARTED | |
 | M06 | Private RFP Upload | NOT_STARTED | |
