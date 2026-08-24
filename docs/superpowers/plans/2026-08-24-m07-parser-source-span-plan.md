@@ -75,7 +75,7 @@
 - Consumes: `sha256Hex(bytes)` from `src/lib/documents/rfp-original.ts`, Web `TextDecoder`, and Web Crypto.
 - Produces: `DocumentParser`, `ParseInput`, `ParsedDocument`, `ParsedSourceSpan`, `SourceLocation`, `DocumentParseError`, `normalizeSourceText()`, `hashParsedSourceSpan()`, `hashParsedDocument()`, and `PlainTextDocumentParser`.
 
-- [ ] **Step 1: Write the failing parser contract tests**
+- [x] **Step 1: Write the failing parser contract tests**
 
 Use this contract shape in `plain-text-document-parser.test.ts`:
 
@@ -126,13 +126,13 @@ it("pins the original-text SHA-256 and rejects empty source", async () => {
 
 Also cover fatal invalid UTF-8, initial BOM handling, NFC normalization, stable result hash, location validation, 20,000-span/256-KiB/16-MiB limits, and injection-shaped text retained as inert `originalText`.
 
-- [ ] **Step 2: Run the targeted unit test and confirm RED**
+- [x] **Step 2: Run the targeted unit test and confirm RED**
 
 Run: `pnpm test -- src/lib/parsing/plain-text-document-parser.test.ts`
 
 Expected: FAIL with module-not-found for `plain-text-document-parser`; all pre-existing unit/Eval tests remain untouched.
 
-- [ ] **Step 3: Implement the minimum parser types and errors**
+- [x] **Step 3: Implement the minimum parser types and errors**
 
 Define these public types in `document-parser.ts`:
 
@@ -183,13 +183,13 @@ export interface DocumentParser {
 
 `DocumentParseError.code` is one of `UNSUPPORTED_FORMAT`, `INVALID_TEXT_ENCODING`, `EMPTY_SOURCE`, `SOURCE_INTEGRITY_FAILED`, `PARSE_LIMIT_EXCEEDED`, or `PARSE_FAILED`. Its message is fixed and never includes parser/provider detail.
 
-- [ ] **Step 4: Implement deterministic normalization, hashing, and TXT parsing**
+- [x] **Step 4: Implement deterministic normalization, hashing, and TXT parsing**
 
 Use parser constants `plain-text`, `1.0.0`, and `nfc-lines-v1`. Decode with `new TextDecoder("utf-8", { fatal: true })`, remove only an initial U+FEFF encoding marker, scan line offsets without rewriting the input, omit blank separators, and slice each maximal non-blank paragraph from its first content byte to its last content character. Normalize only the separate normalized field.
 
 Canonical result hashing serializes ordered objects with keys `ordinal`, `location`, `originalTextSha256`, and `normalizedText` in that order and location keys in the union order above, with `JSON.stringify` and no whitespace.
 
-- [ ] **Step 5: Run targeted and affected unit tests for GREEN**
+- [x] **Step 5: Run targeted and affected unit tests for GREEN**
 
 Run: `pnpm test -- src/lib/parsing/plain-text-document-parser.test.ts`
 
@@ -197,7 +197,7 @@ Run: `pnpm test`
 
 Expected: the new contract and all existing unit/Eval-inclusive Vitest files pass.
 
-- [ ] **Step 6: Commit the parser contract**
+- [x] **Step 6: Commit the parser contract**
 
 ```powershell
 git add -- src/lib/parsing/document-parser.ts src/lib/parsing/source-span.ts src/lib/parsing/plain-text-document-parser.ts src/lib/parsing/plain-text-document-parser.test.ts
