@@ -41,7 +41,7 @@
 
 ### Persistence and authorization
 
-- Create `supabase/migrations/20260824175415_parser_source_span.sql`: immutable parse/span schema, indexes, location/hash helpers, RLS, guarded atomic RPC, and audit event.
+- Create `supabase/migrations/20260824093651_parser_source_span.sql`: immutable parse/span schema, indexes, location/hash helpers, RLS, guarded atomic RPC, and audit event.
 - Create `supabase/tests/database/source_span_schema_test.sql`: catalog/constraint/grant/function contract.
 - Create `supabase/tests/database/source_span_isolation_test.sql`: real-role persistence, isolation, immutability, idempotency, and hash behavior.
 
@@ -318,13 +318,13 @@ Skip this commit when no binary adapter survives all checks.
 
 **Files:**
 - Create: `supabase/tests/database/source_span_schema_test.sql`
-- Create: `supabase/migrations/20260824175415_parser_source_span.sql`
+- Create: `supabase/migrations/20260824093651_parser_source_span.sql`
 
 **Interfaces:**
 - Consumes: M05 tenant/project schema, M06 immutable `documents`/`audit_events`, and the `extensions.digest` pgcrypto function.
 - Produces: `public.document_parses`, `public.source_spans`, composite scope keys, immutable privileges, indexes, RLS-enabled tables, and private location/canonical-hash helpers.
 
-- [ ] **Step 1: Write the failing pgTAP schema contract**
+- [x] **Step 1: Write the failing pgTAP schema contract**
 
 Assert both tables, RLS flags, required columns, positive span count/ordinal, lowercase hashes, non-empty text, validated location JSON, restrictive composite foreign keys, parser-version idempotency key, project listing indexes, authenticated SELECT-only grants, zero anon grants, and existence/security configuration of private validation/hash helpers.
 
@@ -350,19 +350,19 @@ select is(
 );
 ```
 
-- [ ] **Step 2: Run the database suite and confirm RED**
+- [x] **Step 2: Run the database suite and confirm RED**
 
 Run: `pnpm test:rls`
 
 Expected: only new M07 schema assertions fail because parse/span objects are absent; all 98 M06 assertions remain green.
 
-- [ ] **Step 3: Implement minimum immutable tables and validation helpers**
+- [x] **Step 3: Implement minimum immutable tables and validation helpers**
 
 Add a unique document scope key `(tenant_id, project_id, id, sha256)`. Create `document_parses` with source hash, parser/normalization versions, detected format, warnings array, positive span count, result hash, actor/time, document composite FK, and unique idempotency key. Create `source_spans` with composite parse scope, one-based ordinal, discriminated location JSON, separate original/normalized text, recomputed text hash, and timestamp.
 
 The location helper accepts only the four exact shapes from the spec and rejects extra keys, zero/negative numbers, reversed line ranges, blank optional names, and malformed cell ranges. Enable RLS immediately; grant authenticated SELECT only and service-role explicit administration privileges for test cleanup.
 
-- [ ] **Step 4: Reset the database and confirm schema GREEN**
+- [x] **Step 4: Reset the database and confirm schema GREEN**
 
 Run: `pnpm supabase db reset --local --no-seed`
 
@@ -370,10 +370,10 @@ Run: `pnpm test:rls`
 
 Expected: M05/M06 plus the M07 schema contract pass; persistence behavior is not yet exposed.
 
-- [ ] **Step 5: Commit the immutable schema**
+- [x] **Step 5: Commit the immutable schema**
 
 ```powershell
-git add -- supabase/tests/database/source_span_schema_test.sql supabase/migrations/20260824175415_parser_source_span.sql
+git add -- supabase/tests/database/source_span_schema_test.sql supabase/migrations/20260824093651_parser_source_span.sql
 git commit -m "feat: add immutable source span schema"
 ```
 
@@ -381,7 +381,7 @@ git commit -m "feat: add immutable source span schema"
 
 **Files:**
 - Create: `supabase/tests/database/source_span_isolation_test.sql`
-- Modify: `supabase/migrations/20260824175415_parser_source_span.sql`
+- Modify: `supabase/migrations/20260824093651_parser_source_span.sql`
 
 **Interfaces:**
 - Consumes: Task 4 tables and M05 membership roles.
@@ -443,7 +443,7 @@ Expected: every M05-M07 assertion passes; unauthorized cross-project reads/write
 - [ ] **Step 5: Commit persistence authorization**
 
 ```powershell
-git add -- supabase/tests/database/source_span_isolation_test.sql supabase/migrations/20260824175415_parser_source_span.sql
+git add -- supabase/tests/database/source_span_isolation_test.sql supabase/migrations/20260824093651_parser_source_span.sql
 git commit -m "feat: persist isolated source span snapshots"
 ```
 
