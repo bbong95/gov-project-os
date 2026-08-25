@@ -2,15 +2,15 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M08 Requirement Extraction (DESIGN)
+- Current Milestone: M08 Requirement Extraction (PLAN)
 - Last Completed Milestone: M07 Parser/SourceSpan
-- Current Task: Await written M08 specification review before creating the TDD implementation plan
-- Blocked By: M08 written specification approval
-- Human Checkpoint: M08_WRITTEN_SPEC — WAITING
-- Next Verification: After written-spec approval, create and review the M08 TDD implementation plan; do not implement production behavior yet
+- Current Task: Review the committed M08 TDD implementation plan and choose its execution mode; no test or product behavior has started
+- Blocked By: M08 implementation-plan and execution-mode approval
+- Human Checkpoint: M08_IMPLEMENTATION_PLAN — WAITING
+- Next Verification: After explicit plan/execution approval, write Task 1's failing privacy-policy behavior test and confirm the intended RED
 - Last Code Commit: 8585dc2 test: verify source span delivery boundary
-- Last Commit: 185aa06 docs: record m07 verification
-- Last Updated: 2026-08-25 12:53:08 +09:00
+- Last Commit: c3440df docs: define m08 requirement extraction design
+- Last Updated: 2026-08-25 13:26:53 +09:00
 
 ## Milestones
 
@@ -24,7 +24,7 @@
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
-| M08 | Requirement Extraction | IN_PROGRESS — WRITTEN_SPEC_REVIEW | Architecture, data model, data flow, and verification design approved; consolidated specification pending written review |
+| M08 | Requirement Extraction | IN_PROGRESS — IMPLEMENTATION_PLAN_REVIEW | Written specification approved; 11-task TDD plan prepared; production behavior unchanged pending plan/execution approval |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | NOT_STARTED | |

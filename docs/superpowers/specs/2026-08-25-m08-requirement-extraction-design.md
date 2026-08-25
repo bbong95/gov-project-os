@@ -1,6 +1,6 @@
 # M08 Requirement Extraction Design
 
-- Status: Draft for written-spec approval
+- Status: Approved
 - Date: 2026-08-25
 - Milestone: M08 — Requirement Extraction
 - Prior milestone: M07 — Trusted Parser Boundary
@@ -376,4 +376,4 @@ The user approved these design sections in order:
 3. M08 data flow.
 4. M08 verification design.
 
-This document consolidates those approvals. No production implementation or implementation plan begins until the user approves this written specification. After written-spec approval, the next action is to create the TDD implementation plan; implementation still starts only within M08 and cannot advance to M09 without the M08 completion gate.
+The user explicitly approved this written specification on 2026-08-25. The TDD implementation plan is now the next review Gate; production behavior still starts only after explicit plan/execution approval, remains inside M08, and cannot advance to M09 without the M08 completion gate.
