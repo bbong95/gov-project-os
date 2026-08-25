@@ -20,6 +20,7 @@ const SOURCE = [
 let fixture: LocalRfpFixture;
 let editorClient: SupabaseClient;
 let allowedParseId = "";
+let allowedRunHref = "";
 
 async function login(page: Page, email: string, password: string): Promise<void> {
 	await page.goto("/login");
@@ -152,12 +153,89 @@ test("editor creates one AI draft and reuses it with an authoritative parse-only
 	const href = await resultLink.getAttribute("href");
 	expect(href).toMatch(new RegExp("/requirements/[0-9a-f-]{36}$"));
 	const runId = href!.split("/").at(-1)!;
+	allowedRunHref = href!;
 
 	const { count: candidateCount } = await editorClient
 		.from("requirement_candidates")
 		.select("id", { count: "exact", head: true })
 		.eq("run_id", runId);
 	expect(candidateCount).toBe(3);
+	const { data: firstCandidateRow, error: firstCandidateError } =
+		await editorClient
+			.from("requirement_candidates")
+			.select("id")
+			.eq("run_id", runId)
+			.eq("candidate_order", 1)
+			.single();
+	expect(firstCandidateError).toBeNull();
+	const { data: evidenceRows, error: evidenceError } = await editorClient
+		.from("requirement_candidate_source_spans")
+		.select("source_span_id, source_order")
+		.eq("candidate_id", firstCandidateRow!.id)
+		.order("source_order", { ascending: true });
+	expect(evidenceError).toBeNull();
+	expect(evidenceRows).toHaveLength(1);
+
+	await resultLink.press("Enter");
+	await page.waitForURL(new RegExp("/requirements/" + runId + "$"));
+	await expect(
+		page.getByRole("heading", { level: 1, name: "요구사항 AI 초안" }),
+	).toBeVisible();
+	await expect(page.getByText("AI 초안", { exact: true }).first()).toBeVisible();
+
+	const firstCandidate = page.getByRole("article", {
+		name: "요구사항 후보 1 SER-001",
+	});
+	await expect(firstCandidate.getByText("SER-001", { exact: true })).toBeVisible();
+	await expect(
+		firstCandidate.getByText(
+			"사용자 접근권한을 최소권한 원칙으로 관리해야 한다.",
+			{ exact: true },
+		),
+	).toBeVisible();
+	await expect(firstCandidate.getByText("보안", { exact: true })).toBeVisible();
+	await expect(firstCandidate.getByText("원자", { exact: true })).toBeVisible();
+	await expect(
+		firstCandidate.getByTestId("candidate-source-text"),
+	).toHaveText(
+		"SER-001 사업자는 사용자 접근권한을 최소권한 원칙에 따라 관리하여야 한다.",
+	);
+	const firstEvidence = firstCandidate.getByRole("link", {
+		name: "SER-001 후보 SourceSpan 1 증거 보기",
+	});
+	await expect(firstEvidence).toHaveAttribute(
+		"href",
+		"/projects/" +
+			fixture.assignedProjectId +
+			"/documents/" +
+			prepared.documentId +
+			"/source#span-" +
+			evidenceRows![0].source_span_id,
+	);
+
+	const thirdCandidate = page.getByRole("article", {
+		name: "요구사항 후보 3 식별자 없음",
+	});
+	await expect(
+		thirdCandidate.getByText("식별자 없음", { exact: true }),
+	).toBeVisible();
+	await expect(
+		page.getByRole("button", {
+			name: /편집|승인|반려|Baseline|베이스라인/,
+		}),
+	).toHaveCount(0);
+	await expect(
+		page.getByRole("link", {
+			name: /편집|승인|반려|Baseline|베이스라인/,
+		}),
+	).toHaveCount(0);
+
+	await firstEvidence.press("Enter");
+	await page.waitForURL(/source#span-/);
+	await expect(
+		page.locator("#span-" + evidenceRows![0].source_span_id),
+	).toBeVisible();
+
 	const firstState = await stubState();
 	expect(firstState).toMatchObject({
 		callCount: 1,
@@ -195,9 +273,24 @@ test("viewer, cross-project, forged, and anonymous requests cannot extract", asy
 	await login(page, fixture.viewerEmail, fixture.viewerPassword);
 	await page.goto("/projects/" + fixture.assignedProjectId + "/rfp");
 	await expect(page.getByRole("button", { name: /요구사항 추출/ })).toHaveCount(0);
+	expect(allowedRunHref).not.toBe("");
+	const viewerResult = await page.goto(allowedRunHref);
+	expect(viewerResult?.status()).toBe(200);
+	await expect(
+		page.getByRole("heading", { level: 1, name: "요구사항 AI 초안" }),
+	).toBeVisible();
 
 	await page.context().clearCookies();
 	await login(page, fixture.crossEmail, fixture.crossPassword);
+	const crossResult = await page.goto(allowedRunHref);
+	expect(crossResult?.status()).toBe(404);
+	const mismatchedScope = await page.goto(
+		"/projects/" +
+			fixture.crossTenantProjectId +
+			"/requirements/" +
+			allowedRunHref.split("/").at(-1),
+	);
+	expect(mismatchedScope?.status()).toBe(404);
 	for (const [projectId, parseId] of [
 		[fixture.assignedProjectId, allowedParseId],
 		[fixture.crossTenantProjectId, "ffffffff-ffff-4fff-8fff-ffffffffffff"],
@@ -210,6 +303,8 @@ test("viewer, cross-project, forged, and anonymous requests cannot extract", asy
 	}
 
 	await page.context().clearCookies();
+	await page.goto(allowedRunHref);
+	await expect(page).toHaveURL(new RegExp("/login$"));
 	const anonymous = await page.request.post(
 		"/projects/" + fixture.assignedProjectId + "/requirements/extract",
 		{ form: { documentParseId: allowedParseId }, maxRedirects: 0 },

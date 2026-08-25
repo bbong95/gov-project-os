@@ -111,7 +111,11 @@ export default async function SourcePage({ params }: SourcePageProps) {
 						const headingId = `source-span-${span.ordinal}`;
 						return (
 							<li key={span.id}>
-								<section aria-labelledby={headingId} className="rounded-md border border-slate-300 bg-white p-5">
+								<section
+									aria-labelledby={headingId}
+									className="rounded-md border border-slate-300 bg-white p-5"
+									id={"span-" + span.id}
+								>
 									<h2 className="text-xl font-semibold" id={headingId}>SourceSpan {span.ordinal}</h2>
 									<dl className="mt-3 grid gap-2 text-sm sm:grid-cols-[10rem_1fr]">
 										<dt className="font-medium">원본 위치</dt>

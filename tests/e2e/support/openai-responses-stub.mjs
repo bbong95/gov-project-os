@@ -128,7 +128,7 @@ function providerEnvelope() {
 							sourceSpanOrdinals: [2],
 						},
 						{
-							officialId: "PSR-001",
+							officialId: null,
 							interpretation: "교육과 기술지원을 제공해야 한다.",
 							type: "PROJECT_SUPPORT",
 							atomicity: "ATOMIC",
