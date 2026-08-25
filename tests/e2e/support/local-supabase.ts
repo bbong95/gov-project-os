@@ -143,6 +143,8 @@ export async function createLocalAuthFixture(): Promise<LocalAuthFixture> {
 export type LocalRfpFixture = {
 	assignedEmail: string;
 	assignedPassword: string;
+	viewerEmail: string;
+	viewerPassword: string;
 	assignedProjectName: string;
 	crossEmail: string;
 	crossPassword: string;
@@ -150,10 +152,12 @@ export type LocalRfpFixture = {
 	assignedTenantId: string;
 	assignedProjectId: string;
 	assignedUserId: string;
+	viewerUserId: string;
 	crossTenantId: string;
 	crossTenantProjectId: string;
 	trackStoragePath: (path: string) => void;
 	createAssignedClient: () => Promise<SupabaseClient>;
+	createViewerClient: () => Promise<SupabaseClient>;
 	createCrossTenantClient: () => Promise<SupabaseClient>;
 	createAnonymousClient: () => SupabaseClient;
 	dispose: () => Promise<void>;
@@ -198,6 +202,14 @@ async function cleanupRfpFixture(
 		);
 	}
 	await requireSuccess(
+		admin.from("source_spans").delete().in("project_id", projectIds),
+		"Synthetic source span cleanup failed",
+	);
+	await requireSuccess(
+		admin.from("document_parses").delete().in("project_id", projectIds),
+		"Synthetic document parse cleanup failed",
+	);
+	await requireSuccess(
 		admin.from("audit_events").delete().in("project_id", projectIds),
 		"Synthetic audit cleanup failed",
 	);
@@ -222,8 +234,10 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 	const suffix = randomUUID();
 	const assignedEmail = `m06-assigned-${suffix}@example.test`;
 	const crossEmail = `m06-cross-${suffix}@example.test`;
+	const viewerEmail = `m07-viewer-${suffix}@example.test`;
 	const assignedPassword = `M06-A-${randomUUID()}-aA1!`;
 	const crossPassword = `M06-B-${randomUUID()}-aA1!`;
+	const viewerPassword = `M07-V-${randomUUID()}-aA1!`;
 	const assignedTenantId = randomUUID();
 	const crossTenantId = randomUUID();
 	const assignedProjectId = randomUUID();
@@ -253,8 +267,21 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 			`Synthetic cross user setup failed: ${crossUserError?.message ?? "missing user"}`,
 		);
 	}
+	const { data: viewerUserData, error: viewerUserError } = await admin.auth.admin.createUser({
+		email: viewerEmail,
+		password: viewerPassword,
+		email_confirm: true,
+	});
+	if (viewerUserError || !viewerUserData.user) {
+		await admin.auth.admin.deleteUser(assignedUserData.user.id);
+		await admin.auth.admin.deleteUser(crossUserData.user.id);
+		throw new Error(
+			`Synthetic viewer user setup failed: ${viewerUserError?.message ?? "missing user"}`,
+		);
+	}
 
 	const assignedUserId = assignedUserData.user.id;
+	const viewerUserId = viewerUserData.user.id;
 	const crossUserId = crossUserData.user.id;
 	try {
 		await requireSuccess(
@@ -290,6 +317,12 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 					role: "EDITOR",
 				},
 				{
+					tenant_id: assignedTenantId,
+					project_id: assignedProjectId,
+					user_id: viewerUserId,
+					role: "VIEWER",
+				},
+				{
 					tenant_id: crossTenantId,
 					project_id: crossTenantProjectId,
 					user_id: crossUserId,
@@ -303,7 +336,7 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 			admin,
 			[assignedProjectId, crossTenantProjectId],
 			[assignedTenantId, crossTenantId],
-			[assignedUserId, crossUserId],
+			[assignedUserId, viewerUserId, crossUserId],
 			trackedStoragePaths,
 		);
 		throw error;
@@ -313,17 +346,21 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 		assignedEmail,
 		assignedPassword,
 		assignedProjectName: `M06 합성 프로젝트 A ${suffix.slice(0, 8)}`,
+		viewerEmail,
+		viewerPassword,
 		crossEmail,
 		crossPassword,
 		crossTenantProjectName: `M06 합성 프로젝트 B ${suffix.slice(0, 8)}`,
 		assignedTenantId,
 		assignedProjectId,
 		assignedUserId,
+		viewerUserId,
 		crossTenantId,
 		crossTenantProjectId,
 		trackStoragePath: (path) => trackedStoragePaths.add(path),
 		createAssignedClient: () =>
 			createSignedInClient(status, assignedEmail, assignedPassword),
+		createViewerClient: () => createSignedInClient(status, viewerEmail, viewerPassword),
 		createCrossTenantClient: () => createSignedInClient(status, crossEmail, crossPassword),
 		createAnonymousClient: () =>
 			createClient(status.API_URL, status.PUBLISHABLE_KEY, {
@@ -334,7 +371,7 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 				admin,
 				[assignedProjectId, crossTenantProjectId],
 				[assignedTenantId, crossTenantId],
-				[assignedUserId, crossUserId],
+				[assignedUserId, viewerUserId, crossUserId],
 				trackedStoragePaths,
 			),
 	};

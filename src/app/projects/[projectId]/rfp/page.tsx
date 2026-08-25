@@ -34,6 +34,19 @@ const ERROR_MESSAGES: Record<string, string> = {
 	project_not_found: "접근 가능한 프로젝트를 찾지 못했습니다.",
 	upload_failed: "업로드 권한과 파일 상태를 확인하세요.",
 	metadata_failed: "문서 기록을 완료하지 못했습니다. 다시 시도하세요.",
+	unsupported_format: "현재 이 파일 형식은 파싱할 수 없습니다.",
+	invalid_text_encoding: "TXT 원본이 올바른 UTF-8 형식이 아닙니다.",
+	empty_source: "파싱할 원문 내용이 없습니다.",
+	source_integrity_failed: "저장된 원본의 무결성을 확인하지 못했습니다.",
+	parse_limit_exceeded: "원문이 현재 파싱 안전 한도를 초과했습니다.",
+	parse_failed: "원본을 파싱하지 못했습니다.",
+	persist_failed: "파싱 결과를 안전하게 보관하지 못했습니다.",
+};
+
+const STATUS_MESSAGES: Record<string, string> = {
+	uploaded: "RFP 원본을 안전하게 저장했습니다.",
+	parsed: "RFP 원본 파싱을 완료했습니다.",
+	already_parsed: "동일한 파싱 결과가 이미 보관되어 있습니다.",
 };
 
 export default async function RfpPage({ params, searchParams }: RfpPageProps) {
@@ -56,7 +69,7 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 		notFound();
 	}
 
-	const [projectMembershipResult, tenantMembershipResult, documentResult] = await Promise.all([
+	const [projectMembershipResult, tenantMembershipResult, documentResult, parseResult] = await Promise.all([
 		supabase
 			.from("project_memberships")
 			.select("role")
@@ -77,14 +90,23 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 			.eq("project_id", projectId)
 			.eq("document_kind", "RFP")
 			.order("created_at", { ascending: false }),
+		supabase
+			.from("document_parses")
+			.select("document_id, created_at")
+			.eq("project_id", projectId)
+			.order("created_at", { ascending: false }),
 	]);
 	const canUpload =
 		projectMembershipResult.data?.role === "EDITOR" ||
 		projectMembershipResult.data?.role === "PROJECT_ADMIN" ||
 		tenantMembershipResult.data?.role === "TENANT_ADMIN";
-	const status = resultParams.status === "uploaded" ? "uploaded" : null;
+	const statusCode = typeof resultParams.status === "string" ? resultParams.status : null;
+	const statusMessage = statusCode ? STATUS_MESSAGES[statusCode] : null;
 	const errorCode = typeof resultParams.error === "string" ? resultParams.error : null;
 	const errorMessage = errorCode ? ERROR_MESSAGES[errorCode] : null;
+	const parsedDocumentIds = new Set(
+		(parseResult.data ?? []).map((parse) => parse.document_id),
+	);
 
 	return (
 		<main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12">
@@ -98,13 +120,13 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 				<p className="text-sm font-medium text-slate-700">{project.name}</p>
 				<h1 className="text-3xl font-semibold tracking-tight">RFP 원본</h1>
 				<p className="leading-7 text-slate-700">
-					원본은 비공개로 보관되며, 파싱이나 AI 분석은 이 단계에서 수행하지 않습니다.
+					원본은 비공개 불변 자료로 보관됩니다. 검증 가능한 형식은 AI 없이 파싱해 원문 증거를 분리 보관합니다.
 				</p>
 			</header>
 
-			{status ? (
+			{statusMessage ? (
 				<p className="mt-6 rounded-md border border-green-700 bg-green-50 p-3 text-green-950" role="status">
-					RFP 원본을 안전하게 저장했습니다.
+					{statusMessage}
 				</p>
 			) : null}
 			{errorMessage ? (
@@ -178,14 +200,16 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 				<h2 className="text-xl font-semibold" id="rfp-list-heading">
 					등록된 원본
 				</h2>
-				{documentResult.error ? (
+				{documentResult.error || parseResult.error ? (
 					<p className="mt-4 rounded-md border border-red-700 bg-red-50 p-3 text-red-950" role="alert">
 						등록된 원본을 불러오지 못했습니다.
 					</p>
 				) : documentResult.data && documentResult.data.length > 0 ? (
 					<ul className="mt-5 space-y-4">
-						{documentResult.data.map((document) => (
-							<li className="rounded-md border border-slate-300 bg-white p-5" key={document.id}>
+						{documentResult.data.map((document) => {
+							const parsed = parsedDocumentIds.has(document.id);
+							const parseable = document.original_filename.toLowerCase().endsWith(".txt");
+							return <li className="rounded-md border border-slate-300 bg-white p-5" key={document.id}>
 								<p className="font-semibold">{document.original_filename}</p>
 								<dl className="mt-3 grid gap-2 text-sm sm:grid-cols-[9rem_1fr]">
 									<dt className="font-medium">자료 분류</dt>
@@ -195,15 +219,40 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 									<dt className="font-medium">SHA-256</dt>
 									<dd className="break-all font-mono">{document.sha256}</dd>
 								</dl>
-								<Link
+								<p className="mt-3 text-sm font-medium">
+									파싱 상태: {parsed ? "파싱 완료" : parseable ? "파싱 가능" : "파싱 미지원"}
+								</p>
+								<div className="mt-4 flex flex-wrap gap-3">
+									<Link
 									aria-label={`${document.original_filename} 다운로드`}
-									className="mt-4 inline-flex min-h-11 items-center rounded-md border border-blue-800 px-4 py-2 font-semibold text-blue-900 hover:bg-blue-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+									className="inline-flex min-h-11 items-center rounded-md border border-blue-800 px-4 py-2 font-semibold text-blue-900 hover:bg-blue-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
 									href={`/projects/${project.id}/documents/${document.id}/download`}
 								>
 									다운로드
-								</Link>
+									</Link>
+									{parsed ? (
+										<Link
+											aria-label={`${document.original_filename} SourceSpan 보기`}
+											className="inline-flex min-h-11 items-center rounded-md border border-blue-800 px-4 py-2 font-semibold text-blue-900 hover:bg-blue-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+											href={`/projects/${project.id}/documents/${document.id}/source`}
+										>
+											SourceSpan 보기
+										</Link>
+									) : null}
+									{canUpload && parseable ? (
+										<form action={`/projects/${project.id}/documents/${document.id}/parse`} method="post">
+											<button
+												aria-label={`${document.original_filename} 파싱 시작`}
+												className="min-h-11 rounded-md bg-blue-800 px-4 py-2 font-semibold text-white hover:bg-blue-900 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+												type="submit"
+											>
+												파싱 시작
+											</button>
+										</form>
+									) : null}
+								</div>
 							</li>
-						))}
+						})}
 					</ul>
 				) : (
 					<p className="mt-4 text-slate-700" role="status">
