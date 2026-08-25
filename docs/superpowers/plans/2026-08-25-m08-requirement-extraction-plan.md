@@ -127,7 +127,7 @@ These are M08 safety limits, not measured product defaults. Exceeding a limit fa
 - Produces the exact types, versions, limits, and error codes in **Fixed Domain Contract**.
 - Produces `decideRequirementExtractionPolicy(value: unknown): ExtractionPolicyDecision`.
 
-- [ ] **Step 1: Write the privacy behavior tests**
+- [x] **Step 1: Write the privacy behavior tests**
 
 ```ts
 it.each([
@@ -145,25 +145,27 @@ it.each([
 
 Also assert the exact vocabulary, `AI_DRAFT` as the only M08 provenance state, and the fixed input/provider-response/candidate limits and error codes.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm test -- src/lib/requirements/privacy-policy.test.ts`
 
 Expected: FAIL because the requirement modules do not exist.
 
-- [ ] **Step 3: Implement the minimum total mapping and domain exports**
+- [x] **Step 3: Implement the minimum total mapping and domain exports**
 
 Use a `switch` with an explicit default `BLOCK`; do not coerce casing or accept aliases.
 
-- [ ] **Step 4: Run GREEN and affected tests**
+- [x] **Step 4: Run GREEN and affected tests**
 
 Run: `pnpm test -- src/lib/requirements/privacy-policy.test.ts src/lib/parsing/prepare-rfp-parse.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/lib/requirements && git commit -m "feat: define requirement extraction policy"`
+
+Evidence: RED failed on the absent policy module while 25 existing tests passed; GREEN passed 8/8 files and 41/41 tests plus typecheck/lint; committed as `3380826`.
 
 ---
 

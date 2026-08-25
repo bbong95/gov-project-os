@@ -2,15 +2,15 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M08 Requirement Extraction (PLAN)
+- Current Milestone: M08 Requirement Extraction (IMPLEMENTATION)
 - Last Completed Milestone: M07 Parser/SourceSpan
-- Current Task: Review the committed M08 TDD implementation plan and choose its execution mode; no test or product behavior has started
-- Blocked By: M08 implementation-plan and execution-mode approval
-- Human Checkpoint: M08_IMPLEMENTATION_PLAN — WAITING
-- Next Verification: After explicit plan/execution approval, write Task 1's failing privacy-policy behavior test and confirm the intended RED
-- Last Code Commit: 8585dc2 test: verify source span delivery boundary
-- Last Commit: 34c10b7 docs: plan m08 requirement extraction
-- Last Updated: 2026-08-25 13:26:53 +09:00
+- Current Task: Task 2 — write the canonical requirement-input behavior test and confirm RED before implementation
+- Blocked By: NONE
+- Human Checkpoint: NONE
+- Next Verification: `pnpm test -- src/lib/requirements/requirement-extraction-input.test.ts` must fail because the canonical-input module does not exist
+- Last Code Commit: 3380826 feat: define requirement extraction policy
+- Last Commit: 3380826 feat: define requirement extraction policy
+- Last Updated: 2026-08-25 13:37:16 +09:00
 
 ## Milestones
 
@@ -24,7 +24,7 @@
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
-| M08 | Requirement Extraction | IN_PROGRESS — IMPLEMENTATION_PLAN_REVIEW | Written specification approved; 11-task TDD plan prepared; production behavior unchanged pending plan/execution approval |
+| M08 | Requirement Extraction | IN_PROGRESS — TASK_1_COMPLETE | Fail-closed privacy policy and closed M08 vocabulary RED→GREEN; Task 2 canonical-input boundary is next |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | NOT_STARTED | |
