@@ -68,6 +68,7 @@ export type AiUsage = { inputTokens: number | null; outputTokens: number | null 
 
 export type RequirementExtractionErrorCode =
 	| "AI_INPUT_LIMIT_EXCEEDED"
+	| "AI_INPUT_INVALID"
 	| "AI_CONFIG_MISSING"
 	| "AI_PROVIDER_UNAVAILABLE"
 	| "AI_PROVIDER_REFUSED"
@@ -193,7 +194,7 @@ export function buildRequirementExtractionInput(input: {
 	parserName: string; parserVersion: string; normalizationVersion: string;
 	parseResultSha256: string; provider: "OPENAI"; model: string;
 	spans: readonly ExtractionSourceSpan[];
-}): { canonicalInput: string; canonicalInputSha256: string; fingerprintSha256: string };
+}): Promise<{ canonicalInput: string; canonicalInputSha256: string; fingerprintSha256: string }>;
 
 export type RawRequirementCandidate = {
 	officialId: string | null;
@@ -221,47 +222,49 @@ export function validateAndMapRequirementOutput(input: {
 }): { candidates: PersistableRequirementCandidate[]; acceptedOutputSha256: string };
 ```
 
-- [ ] **Step 1: Write canonical-input RED tests**
+- [x] **Step 1: Write canonical-input RED tests**
 
 Assert ordered JSON is stable across object insertion order, contains parser/normalization versions and parse hash plus span ordinal/location/`normalizedText`, contains no span/database IDs or `originalText`, hashes are lowercase SHA-256, fingerprint changes with model/version/scope/parse hash, ordinals must be contiguous positive integers, empty spans fail, and more than 1 MiB UTF-8 fails with `AI_INPUT_LIMIT_EXCEEDED` rather than truncating.
 
-- [ ] **Step 2: Run canonical-input RED**
+- [x] **Step 2: Run canonical-input RED**
 
 Run: `pnpm test -- src/lib/requirements/requirement-extraction-input.test.ts`
 
 Expected: FAIL with module-not-found.
 
-- [ ] **Step 3: Implement deterministic canonical serialization**
+- [x] **Step 3: Implement deterministic canonical serialization**
 
 Use an explicitly constructed object and ordered `spans.map`; reuse Web Crypto SHA-256 conventions already used by M07. Include scope only in the fingerprint material, not the provider-visible canonical input.
 
-- [ ] **Step 4: Run canonical-input GREEN**
+- [x] **Step 4: Run canonical-input GREEN**
 
 Run: `pnpm test -- src/lib/requirements/requirement-extraction-input.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 5: Write provider-output RED tests**
+- [x] **Step 5: Write provider-output RED tests**
 
 Cover exact root `{ candidates }`, no extra keys, all required fields, closed enums, nullable `officialId`, 500-candidate/8-KiB/64-span limits, unique positive ordinals, unknown ordinal rejection, same-parse mapping, exact official-ID occurrence in at least one cited `originalText`, deterministic candidate order, server-derived `sourceText`, and stable accepted-output hash. Include a malicious `sourceText` property and database ID from the provider and expect `AI_OUTPUT_INVALID`.
 
-- [ ] **Step 6: Run provider-output RED**
+- [x] **Step 6: Run provider-output RED**
 
 Run: `pnpm test -- src/lib/requirements/requirement-output.test.ts`
 
 Expected: FAIL with module-not-found.
 
-- [ ] **Step 7: Implement strict validation and server mapping**
+- [x] **Step 7: Implement strict validation and server mapping**
 
 Reject rather than strip unknown keys. Preserve cited source order by document ordinal. Set every mapped candidate to `provenanceState: "AI_DRAFT"`; derive `sourceText` by joining cited immutable `originalText` values with `"\n\n"`.
 
-- [ ] **Step 8: Run Task 2 GREEN and commit**
+- [x] **Step 8: Run Task 2 GREEN and commit**
 
 Run: `pnpm test -- src/lib/requirements/requirement-extraction-input.test.ts src/lib/requirements/requirement-output.test.ts`
 
 Expected: PASS.
 
 Run: `git add src/lib/requirements && git commit -m "feat: validate requirement extraction boundaries"`
+
+Evidence: canonical-input RED failed on the absent module and provider-output RED failed on the absent validator; final GREEN passed 10/10 files and 72/72 tests plus typecheck/lint, including a separate blank-official-ID regression RED/GREEN; committed as `d727296`.
 
 ---
 
