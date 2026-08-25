@@ -2,14 +2,15 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M07 Parser/SourceSpan (COMPLETE)
+- Current Milestone: M08 Requirement Extraction (DESIGN)
 - Last Completed Milestone: M07 Parser/SourceSpan
-- Current Task: Await explicit M08 Requirement Extraction authorization
-- Blocked By: None
-- Human Checkpoint: STAGE_GATE_M08 — WAITING
-- Next Verification: None until the user explicitly authorizes M08
+- Current Task: Await written M08 specification review before creating the TDD implementation plan
+- Blocked By: M08 written specification approval
+- Human Checkpoint: M08_WRITTEN_SPEC — WAITING
+- Next Verification: After written-spec approval, create and review the M08 TDD implementation plan; do not implement production behavior yet
 - Last Code Commit: 8585dc2 test: verify source span delivery boundary
-- Last Updated: 2026-08-25 10:47:00 +09:00
+- Last Commit: 185aa06 docs: record m07 verification
+- Last Updated: 2026-08-25 12:53:08 +09:00
 
 ## Milestones
 
@@ -23,7 +24,7 @@
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
-| M08 | Requirement Extraction | NOT_STARTED | |
+| M08 | Requirement Extraction | IN_PROGRESS — WRITTEN_SPEC_REVIEW | Architecture, data model, data flow, and verification design approved; consolidated specification pending written review |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | NOT_STARTED | |
