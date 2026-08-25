@@ -287,7 +287,7 @@ export interface RequirementAiProvider {
 export function createProductionRequirementAiProvider(env?: NodeJS.ProcessEnv): RequirementAiProvider;
 ```
 
-- [ ] **Step 1: Write request-contract and failure RED tests**
+- [x] **Step 1: Write request-contract and failure RED tests**
 
 With an injected fake `fetch`, assert one POST to `https://api.openai.com/v1/responses`, bearer authorization, and this exact semantic body:
 
@@ -304,17 +304,17 @@ With an injected fake `fetch`, assert one POST to `https://api.openai.com/v1/res
 
 Assert `tools` is absent; schema has `additionalProperties:false` at every object, all properties required, and `officialId` is `string|null`. Test missing key/model, production endpoint override rejection, non-2xx including 429 rate limits, timeout/network failure, a response over 4 MiB rejected before JSON parsing, `status:"incomplete"`, refusal content, missing output text, invalid JSON, and sanitized fixed errors. Spy on console methods and assert no API key, input, response body, or provider message is emitted.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm test -- src/lib/ai/openai-responses-provider.test.ts`
 
 Expected: FAIL because the adapter does not exist.
 
-- [ ] **Step 3: Implement the minimum direct-fetch adapter**
+- [x] **Step 3: Implement the minimum direct-fetch adapter**
 
 Do not add an SDK. Read the response through a byte-limited path, reject more than 4 MiB with `AI_OUTPUT_LIMIT_EXCEEDED`, then parse `response.output[*].content[*]`; accept exactly one `output_text` JSON document. Map incomplete/refusal/malformed/provider failures to the fixed M08 codes. Permit `GOV_PROJECT_OS_OPENAI_RESPONSES_URL` only when `NODE_ENV !== "production"`, `GOV_PROJECT_OS_ALLOW_TEST_OPENAI_URL === "1"`, and the URL hostname is loopback.
 
-- [ ] **Step 4: Run GREEN, dependency diff, and commit**
+- [x] **Step 4: Run GREEN, dependency diff, and commit**
 
 Run: `pnpm test -- src/lib/ai/openai-responses-provider.test.ts src/lib/requirements/requirement-output.test.ts`
 
@@ -323,6 +323,8 @@ Run: `git diff -- package.json pnpm-lock.yaml`
 Expected: tests PASS and dependency diff is empty.
 
 Run: `git add src/lib/ai && git commit -m "feat: add stateless OpenAI requirement adapter"`
+
+Evidence: RED failed on the absent adapter module; final provider/output GREEN passed 2/2 files and 41/41 tests plus typecheck/lint with an empty dependency diff. The exact plan command first full-suite run had one unrelated existing parser test reach its 5-second timeout; that test passed 8/8 in isolation and the unchanged exact full command then passed 11/11 files and 91/91 tests. Committed as `a0272a7`.
 
 ---
 
