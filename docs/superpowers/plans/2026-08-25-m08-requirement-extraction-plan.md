@@ -539,29 +539,31 @@ export async function extractRequirements(
 >;
 ```
 
-- [ ] **Step 1: Write deterministic fake-provider RED tests**
+- [x] **Step 1: Write deterministic fake-provider RED tests**
 
 Assert policy runs first; `PERSONAL|SENSITIVE|RESTRICTED|unknown` calls neither provider nor persistence; blocked/review outcomes create safe audit only. For allowed input, assert canonical fingerprint prelookup happens before provider; an existing run returns `REUSED` with zero provider calls; new input makes exactly one provider call; validated output is persisted once; provider refusal/incomplete/network/config/invalid/oversized output produces fixed `FAILED`, safe audit, and no snapshot. Assert the injection-shaped fixture remains plain input and cannot add calls or alter dependencies.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm test -- src/lib/requirements/extract-requirements.test.ts`
 
 Expected: FAIL because the orchestrator does not exist.
 
-- [ ] **Step 3: Implement the minimum orchestration order**
+- [x] **Step 3: Implement the minimum orchestration order**
 
 Order must be: policy → canonical input/limit → fingerprint prelookup → provider → strict output validation/mapping → atomic persist. Catch only known boundary errors, record fixed safe outcomes best-effort without replacing the primary code, and never retry in M08.
 
-- [ ] **Step 4: Run GREEN and affected unit suite**
+- [x] **Step 4: Run GREEN and affected unit suite**
 
 Run: `pnpm test -- src/lib/requirements src/lib/ai src/lib/supabase/trusted-server.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/lib/requirements && git commit -m "feat: orchestrate safe requirement extraction"`
+
+Evidence: the targeted RED failed only on the absent orchestrator. Eighteen deterministic fake-provider tests first passed the minimum policy/order/error implementation. A contract review then added three REDs showing empty candidate arrays were accepted by the validator, omitted from the strict provider minimum, and reached persistence; the validator and JSON schema now both require at least one candidate. Final affected tests passed 7 files and 95/95, the full single-worker suite passed 13 files and 118/118, typecheck/lint and the production browser-secret scan passed. Committed as `25397eb`.
 
 ---
 
