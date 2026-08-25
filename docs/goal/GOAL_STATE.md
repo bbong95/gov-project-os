@@ -9,7 +9,7 @@
 - Human Checkpoint: M08_IMPLEMENTATION_PLAN — WAITING
 - Next Verification: After explicit plan/execution approval, write Task 1's failing privacy-policy behavior test and confirm the intended RED
 - Last Code Commit: 8585dc2 test: verify source span delivery boundary
-- Last Commit: c3440df docs: define m08 requirement extraction design
+- Last Commit: 34c10b7 docs: plan m08 requirement extraction
 - Last Updated: 2026-08-25 13:26:53 +09:00
 
 ## Milestones
