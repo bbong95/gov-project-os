@@ -430,11 +430,11 @@ public.record_requirement_extraction_outcome(
 ) returns void
 ```
 
-- [ ] **Step 1: Finish behavioral RED assertions**
+- [x] **Step 1: Finish behavioral RED assertions**
 
 Test both functions are `SECURITY INVOKER`, have empty fixed `search_path`, and executable only by `service_role`. Test explicit initiating actor existence and active membership, roles `EDITOR|PROJECT_ADMIN|TENANT_ADMIN`, same parse/document/project/tenant scope, `PUBLIC|INTERNAL` only for persistence, exact JSON keys/types/limits, all cited ordinals resolve to the same parse, official ID exists exactly in cited originals, and `source_text` is derived from DB spans. Test malformed second candidate rolls back run/candidates/links/audit; first writer wins and repeat fingerprint returns `{runId, reused:true}` without duplicate rows; viewer/disallowed privacy/cross-project calls fail. Test safe audit events include fixed outcome, versions, hashes, provider/model, duration, and aggregate usage where available, and never source/prompt/provider body.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm supabase db reset`
 
@@ -442,11 +442,11 @@ Run: `pnpm test:rls`
 
 Expected: only new function/atomicity assertions FAIL.
 
-- [ ] **Step 3: Implement service-role-only invoker functions**
+- [x] **Step 3: Implement service-role-only invoker functions**
 
 The service role supplies table privileges; the functions do not bypass RLS with `SECURITY DEFINER`. Recheck actor and scope explicitly, lock or use the unique fingerprint conflict path for first-writer idempotency, derive candidate source text inside SQL from ordered SourceSpans, insert run/candidates/links/audit in one transaction, and return `{runId,reused}`. Non-success outcomes create audit only, never a failed/blocked run row. `p_fingerprint_sha256` is nullable for policy outcomes that correctly stop before fingerprint construction.
 
-- [ ] **Step 4: Run GREEN and advisors**
+- [x] **Step 4: Run GREEN and advisors**
 
 Run: `pnpm supabase db reset`
 
@@ -458,9 +458,11 @@ Run: `pnpm supabase db advisors --local --type performance --level warn --fail-o
 
 Expected: all pgTAP tests PASS; both advisor result sets have no error attributable to M08.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add $m08Migration supabase/tests/database/requirement_extraction_schema_test.sql supabase/tests/database/requirement_extraction_isolation_test.sql && git commit -m "feat: persist actor-bound requirement snapshots"`
+
+Evidence: initial RED failed 44/317 only on the absent functions and dependent behaviors. First GREEN passed 317/317. A role-matrix review then deliberately removed untested administrator branches; PROJECT_ADMIN/TENANT_ADMIN RED failed exactly 3/320 before the minimum branches were restored. Final clean reset passed 320/320, both serialized advisors reported no issues, and security/fixture/dependency scans were clean. Committed as `375739f`.
 
 ---
 

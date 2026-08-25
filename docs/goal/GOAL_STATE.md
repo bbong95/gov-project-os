@@ -4,13 +4,13 @@
 - Status: IN_PROGRESS
 - Current Milestone: M08 Requirement Extraction (IMPLEMENTATION)
 - Last Completed Milestone: M07 Parser/SourceSpan
-- Current Task: Task 5 — finish actor-bound atomic persistence and safe-outcome pgTAP RED assertions before adding either trusted function
+- Current Task: Task 6 — write trusted Supabase adapter RED tests without weakening the M07 server-only boundary
 - Blocked By: NONE
 - Human Checkpoint: NONE
-- Next Verification: extend the exact Task 4 pgTAP files with malformed-payload rollback, actor/role/scope/privacy/evidence/idempotency/audit cases, then confirm `pnpm test:rls` fails only because the two trusted functions are absent
-- Last Code Commit: d201a97 feat: add isolated requirement snapshot schema
-- Last Commit: d201a97 feat: add isolated requirement snapshot schema
-- Last Updated: 2026-08-25 15:26:21 +09:00
+- Next Verification: add `trusted-requirement-extraction` adapter tests, then confirm the missing export/module failures occur while every M07 trusted-server test remains green
+- Last Code Commit: 375739f feat: persist actor-bound requirement snapshots
+- Last Commit: 375739f feat: persist actor-bound requirement snapshots
+- Last Updated: 2026-08-25 15:52:48 +09:00
 
 ## Milestones
 
@@ -24,7 +24,7 @@
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
-| M08 | Requirement Extraction | IN_PROGRESS — TASK_4_COMPLETE | Immutable requirement snapshot schema, same-parse composite evidence keys, forced RLS, scoped read policies, and read-only application grants are committed; Task 5 trusted persistence is next |
+| M08 | Requirement Extraction | IN_PROGRESS — TASK_5_COMPLETE | Service-role-only SECURITY INVOKER functions reauthorize actor/role/scope/privacy, validate complete evidence payloads, persist atomically and idempotently, and emit raw-free audit metadata; Task 6 trusted adapters are next |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | NOT_STARTED | |
