@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { PreparedRfpParse } from "../parsing/prepare-rfp-parse";
 
 export type TrustedDocumentParseInput = PreparedRfpParse & {
@@ -16,17 +16,21 @@ function getTrustedSupabaseConfig(): { url: string; backendSecret: string } {
 	return { url, backendSecret };
 }
 
-export async function persistTrustedDocumentParse(
-	input: TrustedDocumentParseInput,
-): Promise<string> {
+export function createTrustedSupabaseClient(): SupabaseClient {
 	const { url, backendSecret } = getTrustedSupabaseConfig();
-	const client = createClient(url, backendSecret, {
+	return createClient(url, backendSecret, {
 		auth: {
 			persistSession: false,
 			autoRefreshToken: false,
 			detectSessionInUrl: false,
 		},
 	});
+}
+
+export async function persistTrustedDocumentParse(
+	input: TrustedDocumentParseInput,
+): Promise<string> {
+	const client = createTrustedSupabaseClient();
 	const { data, error } = await client.rpc("persist_document_parse", input);
 	if (error || typeof data !== "string") {
 		throw new Error("Trusted parse persistence failed.");
