@@ -463,7 +463,7 @@ Completed as `bddfc87` after the ADR-0002 trust-boundary RED, actor mutation RED
 - Consumes: Task 1 parser, optional Task 3 adapter, M06 `StorageProvider`, signed-in Supabase client for user authorization/private Storage, a separate server-only Supabase secret client, and Task 5 RPC.
 - Produces: `createParserRegistry()`, `prepareRfpParse(document, storage, registry)`, and authenticated parse POST with fixed redirect codes.
 
-- [ ] **Step 1: Write failing orchestration tests**
+- [x] **Step 1: Write failing orchestration tests**
 
 Use real `PlainTextDocumentParser` plus a fake `StorageProvider` that returns a Blob. Assert exact-byte SHA recheck, parser selection, payload mapping, unsupported extension/MIME denial, source-integrity mismatch before parser invocation, parser error sanitization, and injection-shaped source retained as data. Separately prove the trusted server client fails closed without a backend secret, accepts only server-side secret/service-role variables, and sends no user session.
 
@@ -484,21 +484,21 @@ await expect(
 ).rejects.toMatchObject({ code: "SOURCE_INTEGRITY_FAILED" });
 ```
 
-- [ ] **Step 2: Run targeted unit test and confirm RED**
+- [x] **Step 2: Run targeted unit test and confirm RED**
 
 Run: `pnpm test -- src/lib/parsing/prepare-rfp-parse.test.ts`
 
 Expected: FAIL with module-not-found before registry/orchestration exists.
 
-- [ ] **Step 3: Implement minimum registry and pure orchestration**
+- [x] **Step 3: Implement minimum registry and pure orchestration**
 
 Map `.txt` to canonical `text/plain`; keep stored `media_type` only as untrusted metadata. A parser must still validate bytes. If Task 3 produced a verified adapter, add it statically for only its PASS MIME types. Recompute SHA with Web Crypto before selecting/parsing. Return a typed RPC payload and fixed error codes without logging source/provider details.
 
-- [ ] **Step 4: Implement authenticated route**
+- [x] **Step 4: Implement authenticated route**
 
 `POST /projects/<projectId>/documents/<documentId>/parse` verifies claims, selects the exact RFP document through RLS, rejects non-writers with the same fixed unavailable response, downloads through `SupabasePrivateStorageProvider`, and prepares the parse using the user's SSR client. Only the final `persist_document_parse` call uses the separate server-only secret client and passes the verified user ID as `target_actor_user_id`. It redirects relatively with one of `parsed`, `already_parsed`, or a fixed error code and uses no AI gateway.
 
-- [ ] **Step 5: Run unit/type/lint checks for GREEN**
+- [x] **Step 5: Run unit/type/lint checks for GREEN**
 
 Run: `pnpm test -- src/lib/parsing/prepare-rfp-parse.test.ts`
 
@@ -508,7 +508,7 @@ Run: `pnpm lint`
 
 Expected: targeted orchestration behavior, types, and lint pass without raw errors or privileged imports.
 
-- [ ] **Step 6: Commit server parsing**
+- [x] **Step 6: Commit server parsing**
 
 ```powershell
 git add -- src/lib/parsing/parser-registry.ts src/lib/parsing/prepare-rfp-parse.ts src/lib/parsing/prepare-rfp-parse.test.ts src/app/projects/[projectId]/documents/[documentId]/parse/route.ts
@@ -527,11 +527,11 @@ git commit -m "feat: parse private rfp originals server side"
 - Consumes: Task 6 parse route and Task 5 RLS-backed parse/span reads.
 - Produces: writer parse action, viewer-readable evidence, immutable hash/location display, and cross-project/anonymous denial.
 
-- [ ] **Step 1: Extend only runtime synthetic fixture support**
+- [x] **Step 1: Extend only runtime synthetic fixture support**
 
 Add a VIEWER in the assigned project to `LocalRfpFixture`, expose its `.test` credentials, and clean `source_spans` then `document_parses` before audit/documents during disposal. Keep the local service credential private inside the test support module.
 
-- [ ] **Step 2: Write the failing browser vertical-slice test**
+- [x] **Step 2: Write the failing browser vertical-slice test**
 
 Upload `m07-browser-synthetic-rfp.txt` as the editor, press the accessible parse button with Enter, verify textual success, follow the SourceSpan link, and assert:
 
@@ -545,19 +545,19 @@ await expect(page.getByText("정규화문", { exact: true })).toBeVisible();
 
 Verify original and normalized text separately, the known per-span SHA and document SHA, parser/normalization versions, unchanged downloaded bytes, viewer read with no parse control, cross-project 404, anonymous login redirect, and identical retry showing `already_parsed` without a second snapshot.
 
-- [ ] **Step 3: Run targeted E2E and confirm RED**
+- [x] **Step 3: Run targeted E2E and confirm RED**
 
 Run: `pnpm exec playwright test tests/e2e/rfp-parse.spec.ts`
 
 Expected: FAIL because the RFP list has no parse control or SourceSpan page.
 
-- [ ] **Step 4: Implement semantic RFP status and evidence page**
+- [x] **Step 4: Implement semantic RFP status and evidence page**
 
 Update the M06 copy to state that originals are immutable and verified formats can now be parsed without AI. Fetch latest visible parse summaries through RLS. Writers receive a real POST button labelled `<filename> 파싱 시작`; all members receive a real SourceSpan link after success. Unsupported formats show explicit text and no misleading success state.
 
 The source page selects the exact document/parse/spans through RLS, orders spans by ordinal, and renders escaped text in semantic sections. Display original/normalized text under distinct headings, fixed warning text, line/page/sheet/section labels, hashes, and parser versions. Use no Markdown/HTML renderer and no `dangerouslySetInnerHTML`.
 
-- [ ] **Step 5: Re-run browser behavior for GREEN**
+- [x] **Step 5: Re-run browser behavior for GREEN**
 
 Run: `pnpm exec playwright test tests/e2e/rfp-parse.spec.ts`
 
@@ -565,7 +565,7 @@ Run: `pnpm exec playwright test tests/e2e/rfp-upload.spec.ts tests/e2e/rfp-stora
 
 Expected: new parse flow and all M06 upload/storage regressions pass with one Playwright worker.
 
-- [ ] **Step 6: Commit the vertical slice**
+- [x] **Step 6: Commit the vertical slice**
 
 ```powershell
 git add -- tests/e2e/rfp-parse.spec.ts tests/e2e/support/local-supabase.ts src/app/projects/[projectId]/rfp/page.tsx src/app/projects/[projectId]/documents/[documentId]/source/page.tsx
@@ -587,7 +587,7 @@ git commit -m "feat: add accessible source span review"
 - Consumes: every M07 parser, compatibility, persistence, server, and UI behavior.
 - Produces: fresh M07 Gate evidence and an explicit stop before M08.
 
-- [ ] **Step 1: Write and run targeted accessibility coverage**
+- [x] **Step 1: Write and run targeted accessibility coverage**
 
 Use the same synthetic upload/parse flow, keyboard activation, semantic queries, and Axe tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, and `wcag22aa`. Scan parseable, parsed, and populated SourceSpan states.
 
@@ -595,7 +595,7 @@ Run: `pnpm exec playwright test tests/a11y/rfp-source-span.spec.ts`
 
 Expected: PASS when the already-tested semantic UI has no detectable A/AA issue; if RED, make only the failing semantic/focus/status correction, rerun E2E and accessibility, and commit `fix: correct source span accessibility`.
 
-- [ ] **Step 2: Add a reproducible tracked-source Workers verifier**
+- [x] **Step 2: Add a reproducible tracked-source Workers verifier**
 
 The PowerShell script creates a GUID-named directory strictly below the system temp path, archives tracked `HEAD`, starts an official `node:24.19.0-bookworm-slim` container with synthetic public Supabase environment values, installs with the frozen lockfile, runs Next and OpenNext builds, starts Wrangler on loopback, and probes HTTP 200 plus expected product content. A `finally` block removes the exact container and verified temp directory. It never copies `.env.local` or passes actual keys.
 
@@ -657,7 +657,7 @@ Run: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-workers
 
 Expected: frozen install, Next build, OpenNext bundle, Worker start, and HTTP/content probe all exit 0; no container or temp archive remains.
 
-- [ ] **Step 3: Run the complete fresh verification set**
+- [x] **Step 3: Run the complete fresh verification set**
 
 Run each command freshly:
 
@@ -680,7 +680,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-workers-previ
 
 Expected: zero failures, zero unauthorized cross-project reads/writes, unchanged original bytes, stable span/result hashes, database advisors without error, no high dependency vulnerability, and Workers HTTP 200.
 
-- [ ] **Step 4: Run explicit secret, fixture, and banned-infrastructure scans**
+- [x] **Step 4: Run explicit secret, fixture, and banned-infrastructure scans**
 
 Run value-suppressed scans that report counts only. Confirm:
 
@@ -692,11 +692,11 @@ Run value-suppressed scans that report counts only. Confirm:
 
 Do not print matched secret values. Any hit is inspected locally and resolved before Gate PASS.
 
-- [ ] **Step 5: Self-review M07 against the approved spec**
+- [x] **Step 5: Self-review M07 against the approved spec**
 
 Inspect the complete M07 diff and behavior for original/interpretation mixing, missing SourceSpan location/hash, mutable snapshots, `SECURITY DEFINER` authorization/search-path defects, cross-project leakage, raw error reflection, unsupported kordoc claims, untrusted HTML rendering, AI calls, browser secrets, accessibility regressions, real customer data, and banned infrastructure. Fix only verified gaps and rerun every affected command.
 
-- [ ] **Step 6: Persist Goal evidence and stop at M08 Gate**
+- [x] **Step 6: Persist Goal evidence and stop at M08 Gate**
 
 Mark `STAGE_GATE_M07` complete, record parser/kordoc decisions, write every RED/GREEN/final command with exit code/counts, set M07 COMPLETE and M08 NOT_STARTED, and set the next action to explicit M08 authorization. Do not implement extraction.
 

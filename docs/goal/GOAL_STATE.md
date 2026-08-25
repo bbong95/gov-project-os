@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M07 Parser/SourceSpan
-- Last Completed Milestone: M06 Private RFP Upload
-- Current Task: M07 Task 6 original-integrity orchestration and trusted server parse route TDD
+- Current Milestone: M07 Parser/SourceSpan (COMPLETE)
+- Last Completed Milestone: M07 Parser/SourceSpan
+- Current Task: Await explicit M08 Requirement Extraction authorization
 - Blocked By: None
-- Human Checkpoint: None
-- Next Verification: `pnpm test -- src/lib/parsing/prepare-rfp-parse.test.ts src/lib/supabase/trusted-server.test.ts` must fail because the Task 6 modules do not exist
-- Last Commit: bddfc87 feat: persist trusted source span snapshots
-- Last Updated: 2026-08-25 08:49:10 +09:00
+- Human Checkpoint: STAGE_GATE_M08 — WAITING
+- Next Verification: None until the user explicitly authorizes M08
+- Last Code Commit: 8585dc2 test: verify source span delivery boundary
+- Last Updated: 2026-08-25 10:47:00 +09:00
 
 ## Milestones
 
@@ -22,7 +22,7 @@
 | M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit 2/2/RLS 1/1/Eval 1/1/a11y 1/1/E2E 1/1/build/Workers preview HTTP 200; peer/audit clean |
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
-| M07 | Parser/SourceSpan | IN_PROGRESS | Tasks 1-5 committed; trusted persistence RLS 196/196, actor mutation test effective, and both advisors clean; Task 6 next |
+| M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
 | M08 | Requirement Extraction | NOT_STARTED | |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |

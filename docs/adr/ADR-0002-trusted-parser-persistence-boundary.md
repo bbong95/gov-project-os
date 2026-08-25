@@ -1,4 +1,4 @@
-# ADR-0002: Trusted parser persistence boundary (Draft)
+# ADR-0002: Trusted parser persistence boundary
 
 - Status: Accepted
 - Approved: 2026-08-25 by explicit user approval in this task
