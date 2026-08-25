@@ -47,13 +47,30 @@ export default defineConfig({
 			use: { ...devices["Desktop Chrome"] },
 		},
 	],
-	webServer: {
-		command: "pnpm dev --hostname 127.0.0.1",
-		url: "http://127.0.0.1:3000",
-		reuseExistingServer: !process.env.CI,
-		timeout: 120_000,
-		stdout: "ignore",
-		env: { SUPABASE_BACKEND_SECRET: backendSecret() },
-		stderr: "pipe",
-	},
+	webServer: [
+		{
+			command: "node tests/e2e/support/openai-responses-stub.mjs",
+			url: "http://127.0.0.1:4319/health",
+			reuseExistingServer: false,
+			timeout: 30_000,
+			stdout: "ignore",
+			stderr: "pipe",
+		},
+		{
+			command: "pnpm dev --hostname 127.0.0.1",
+			url: "http://127.0.0.1:3000",
+			reuseExistingServer: false,
+			timeout: 120_000,
+			stdout: "ignore",
+			env: {
+				SUPABASE_BACKEND_SECRET: backendSecret(),
+				OPENAI_API_KEY: "synthetic-openai-key",
+				OPENAI_REQUIREMENT_MODEL: "synthetic-requirement-model",
+				GOV_PROJECT_OS_OPENAI_RESPONSES_URL:
+					"http://127.0.0.1:4319/v1/responses",
+				GOV_PROJECT_OS_ALLOW_TEST_OPENAI_URL: "1",
+			},
+			stderr: "pipe",
+		},
+	],
 });

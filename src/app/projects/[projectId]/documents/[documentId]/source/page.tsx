@@ -82,7 +82,7 @@ export default async function SourcePage({ params }: SourcePageProps) {
 				<h1 className="text-3xl font-semibold tracking-tight">RFP SourceSpan</h1>
 				<p className="text-slate-700">{document.original_filename}</p>
 				<p className="leading-7 text-slate-700">
-					원문 증거와 결정적 정규화문을 분리해 표시합니다. 문서 내용은 실행하거나 AI로 보내지 않습니다.
+					원문 증거와 결정적 정규화문을 분리해 표시합니다. 허용된 내용만 권한·정책 확인 후 서버에서 AI로 전송할 수 있으며, 문서 내용은 실행하지 않습니다.
 				</p>
 			</header>
 

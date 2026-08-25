@@ -12,6 +12,7 @@ type RfpPageProps = {
 	searchParams: Promise<{
 		status?: string | string[];
 		error?: string | string[];
+		runId?: string | string[];
 	}>;
 };
 
@@ -41,12 +42,17 @@ const ERROR_MESSAGES: Record<string, string> = {
 	parse_limit_exceeded: "원문이 현재 파싱 안전 한도를 초과했습니다.",
 	parse_failed: "원본을 파싱하지 못했습니다.",
 	persist_failed: "파싱 결과를 안전하게 보관하지 못했습니다.",
+	requirements_failed: "AI 서비스 일시 실패 — 저장된 후보 없음",
 };
 
 const STATUS_MESSAGES: Record<string, string> = {
 	uploaded: "RFP 원본을 안전하게 저장했습니다.",
 	parsed: "RFP 원본 파싱을 완료했습니다.",
 	already_parsed: "동일한 파싱 결과가 이미 보관되어 있습니다.",
+	requirements_created: "AI 초안 생성 완료",
+	requirements_reused: "동일 설정의 기존 결과 재사용",
+	requirements_review: "개인정보 검토 필요 — AI에 전송하지 않음",
+	requirements_blocked: "정책상 AI 전송 차단",
 };
 
 export default async function RfpPage({ params, searchParams }: RfpPageProps) {
@@ -69,7 +75,15 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 		notFound();
 	}
 
-	const [projectMembershipResult, tenantMembershipResult, documentResult, parseResult] = await Promise.all([
+	const resultRunId =
+		typeof resultParams.runId === "string" ? resultParams.runId : null;
+	const [
+		projectMembershipResult,
+		tenantMembershipResult,
+		documentResult,
+		parseResult,
+		resultRunResult,
+	] = await Promise.all([
 		supabase
 			.from("project_memberships")
 			.select("role")
@@ -92,9 +106,17 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 			.order("created_at", { ascending: false }),
 		supabase
 			.from("document_parses")
-			.select("document_id, created_at")
+			.select("id, document_id, created_at")
 			.eq("project_id", projectId)
 			.order("created_at", { ascending: false }),
+		resultRunId
+			? supabase
+					.from("requirement_extraction_runs")
+					.select("id, document_id")
+					.eq("id", resultRunId)
+					.eq("project_id", projectId)
+					.maybeSingle()
+			: Promise.resolve({ data: null, error: null }),
 	]);
 	const canUpload =
 		projectMembershipResult.data?.role === "EDITOR" ||
@@ -104,9 +126,18 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 	const statusMessage = statusCode ? STATUS_MESSAGES[statusCode] : null;
 	const errorCode = typeof resultParams.error === "string" ? resultParams.error : null;
 	const errorMessage = errorCode ? ERROR_MESSAGES[errorCode] : null;
-	const parsedDocumentIds = new Set(
-		(parseResult.data ?? []).map((parse) => parse.document_id),
-	);
+	const latestParseByDocumentId = new Map<
+		string,
+		{ id: string; document_id: string }
+	>();
+	for (const parse of parseResult.data ?? []) {
+		if (!latestParseByDocumentId.has(parse.document_id)) {
+			latestParseByDocumentId.set(parse.document_id, {
+				id: parse.id,
+				document_id: parse.document_id,
+			});
+		}
+	}
 
 	return (
 		<main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-12">
@@ -207,8 +238,23 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 				) : documentResult.data && documentResult.data.length > 0 ? (
 					<ul className="mt-5 space-y-4">
 						{documentResult.data.map((document) => {
-							const parsed = parsedDocumentIds.has(document.id);
+							const parse = latestParseByDocumentId.get(document.id);
+							const parsed = Boolean(parse);
 							const parseable = document.original_filename.toLowerCase().endsWith(".txt");
+							const classification =
+								document.privacy_classification as PrivacyClassification;
+							const extractionState =
+								classification === "PUBLIC" || classification === "INTERNAL"
+									? "추출 가능"
+									: classification === "PERSONAL"
+										? "개인정보 검토 필요 — AI에 전송하지 않음"
+										: "정책상 AI 전송 차단";
+							const canCallAi =
+								classification === "PUBLIC" || classification === "INTERNAL";
+							const showResult =
+								resultRunResult.data?.document_id === document.id &&
+								(statusCode === "requirements_created" ||
+									statusCode === "requirements_reused");
 							return <li className="rounded-md border border-slate-300 bg-white p-5" key={document.id}>
 								<p className="font-semibold">{document.original_filename}</p>
 								<dl className="mt-3 grid gap-2 text-sm sm:grid-cols-[9rem_1fr]">
@@ -222,6 +268,9 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 								<p className="mt-3 text-sm font-medium">
 									파싱 상태: {parsed ? "파싱 완료" : parseable ? "파싱 가능" : "파싱 미지원"}
 								</p>
+								{parsed ? (
+									<p className="mt-2 text-sm font-semibold">{extractionState}</p>
+								) : null}
 								<div className="mt-4 flex flex-wrap gap-3">
 									<Link
 									aria-label={`${document.original_filename} 다운로드`}
@@ -238,6 +287,39 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 										>
 											SourceSpan 보기
 										</Link>
+									) : null}
+									{showResult && resultRunResult.data ? (
+										<Link
+											aria-label={document.original_filename + " AI 초안 결과 보기"}
+											className="inline-flex min-h-11 items-center rounded-md border border-blue-800 px-4 py-2 font-semibold text-blue-900 hover:bg-blue-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+											href={
+												"/projects/" +
+												project.id +
+												"/requirements/" +
+												resultRunResult.data.id
+											}
+										>
+											AI 초안 결과 보기
+										</Link>
+									) : null}
+									{canUpload && parse && canCallAi ? (
+										<form
+											action={"/projects/" + project.id + "/requirements/extract"}
+											method="post"
+										>
+											<input
+												name="documentParseId"
+												type="hidden"
+												value={parse.id}
+											/>
+											<button
+												aria-label={document.original_filename + " 요구사항 추출"}
+												className="min-h-11 rounded-md bg-blue-800 px-4 py-2 font-semibold text-white hover:bg-blue-900 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+												type="submit"
+											>
+												요구사항 추출
+											</button>
+										</form>
 									) : null}
 									{canUpload && parseable ? (
 										<form action={`/projects/${project.id}/documents/${document.id}/parse`} method="post">

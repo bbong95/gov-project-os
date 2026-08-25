@@ -202,6 +202,18 @@ async function cleanupRfpFixture(
 		);
 	}
 	await requireSuccess(
+		admin.from("requirement_candidate_source_spans").delete().in("project_id", projectIds),
+		"Synthetic requirement candidate source cleanup failed",
+	);
+	await requireSuccess(
+		admin.from("requirement_candidates").delete().in("project_id", projectIds),
+		"Synthetic requirement candidate cleanup failed",
+	);
+	await requireSuccess(
+		admin.from("requirement_extraction_runs").delete().in("project_id", projectIds),
+		"Synthetic requirement run cleanup failed",
+	);
+	await requireSuccess(
 		admin.from("source_spans").delete().in("project_id", projectIds),
 		"Synthetic source span cleanup failed",
 	);
