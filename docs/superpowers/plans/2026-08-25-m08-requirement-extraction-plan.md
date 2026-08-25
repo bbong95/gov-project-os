@@ -580,23 +580,23 @@ Evidence: the targeted RED failed only on the absent orchestrator. Eighteen dete
 - Modify: `src/app/projects/[projectId]/documents/[documentId]/source/page.tsx`
 - Optionally modify: `fixtures/synthetic/rfp-mini.json`, only with explicit synthetic expected values.
 
-- [ ] **Step 1: Add the local Responses stub and harness only**
+- [x] **Step 1: Add the local Responses stub and harness only**
 
 The loopback server exposes `/health`, test-only `/__reset`, `/__state`, `/__mode`, and `/v1/responses`. It validates `store:false`, strict schema, no tools, and returns three deterministic candidates tied to synthetic SourceSpan ordinals. Modes are `success`, `refusal`, `incomplete`, and `invalid`. State exposes call count and request metadata hashes, never the full input.
 
 Configure two Playwright web servers: stub on `127.0.0.1:4319`, then Next with server-only `OPENAI_API_KEY=synthetic-openai-key`, `OPENAI_REQUIREMENT_MODEL=synthetic-requirement-model`, `GOV_PROJECT_OS_OPENAI_RESPONSES_URL=http://127.0.0.1:4319/v1/responses`, and `GOV_PROJECT_OS_ALLOW_TEST_OPENAI_URL=1`. Extend cleanup in link → candidate → run → span → parse order.
 
-- [ ] **Step 2: Write the route/UI E2E RED**
+- [x] **Step 2: Write the route/UI E2E RED**
 
 Drive real Auth and local Supabase: upload synthetic TXT → parse → see `추출 가능` → submit the one authoritative `documentParseId` → see `AI 초안 생성 완료` and result link. Assert POST form has no source text, provider, endpoint, model, tenant/project/document ID, privacy decision, or backend secret. Repeat extraction and assert same run plus stub call count 1. Assert viewer cannot see the action, forged/cross-project IDs return 404, and anonymous users reach login. Update SourceSpan copy to say allowed content may be sent server-side only after policy and authorization checks.
 
-- [ ] **Step 3: Run RED**
+- [x] **Step 3: Run RED**
 
 Run: `pnpm test:e2e -- tests/e2e/rfp-requirement-extraction.spec.ts`
 
 Expected: FAIL because the route/control do not exist; the stub itself is healthy.
 
-- [ ] **Step 4: Implement minimum authorized POST and RFP states**
+- [x] **Step 4: Implement minimum authorized POST and RFP states**
 
 The route parses only `documentParseId`, reads the session claims, rereads parse/document/spans with the caller's RLS client, checks `EDITOR|PROJECT_ADMIN|TENANT_ADMIN`, uses 404 for missing/cross/insufficient scope, creates the production provider server-side, and injects an identical-run lookup implemented with that same caller's RLS client. It then calls the orchestrator and redirects with fixed PRG state. The RFP page renders these exact text states:
 
@@ -607,15 +607,17 @@ The route parses only `documentParseId`, reads the session claims, rereads parse
 - `동일 설정의 기존 결과 재사용`
 - `AI 서비스 일시 실패 — 저장된 후보 없음`
 
-- [ ] **Step 5: Run GREEN and privacy/failure modes**
+- [x] **Step 5: Run GREEN and privacy/failure modes**
 
 Run: `pnpm test:e2e -- tests/e2e/rfp-requirement-extraction.spec.ts`
 
 Expected: authorized success/idempotency/isolation PASS. Create separate synthetic documents with `PERSONAL`, `SENSITIVE`, and `RESTRICTED` classifications at upload/fixture-creation time without mutating existing document metadata, then assert stub call count remains zero and no run/candidate/link exists. Exercise refusal/incomplete/invalid modes and assert no snapshot and no raw provider message in UI/audit.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Run: `git add playwright.config.ts tests/e2e fixtures/synthetic src/app/projects src/lib && git commit -m "feat: add requirement extraction vertical flow"`
+
+Evidence: the loopback stub health/state probe passed before product work. The intended E2E RED reached the real uploaded and parsed document and failed only at the absent 추출 가능 control. Final deterministic E2E passed 4/4, including a single provider call across create/reuse, exact parse-only form fields, role/scope denial, PERSONAL/SENSITIVE/RESTRICTED zero calls, and refusal/incomplete/invalid no-snapshot behavior. M06/M07 browser regressions passed 3/3, full unit/Eval passed 118/118, typecheck/lint and the production client-secret scan passed. Committed as fe6e427.
 
 ---
 

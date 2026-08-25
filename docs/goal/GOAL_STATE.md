@@ -4,13 +4,13 @@
 - Status: IN_PROGRESS
 - Current Milestone: M08 Requirement Extraction (IMPLEMENTATION)
 - Last Completed Milestone: M07 Parser/SourceSpan
-- Current Task: Task 8 — add the deterministic Responses stub and authenticated vertical extraction route
+- Current Task: Task 9 — write read-only candidate and SourceSpan evidence-view RED assertions
 - Blocked By: NONE
 - Human Checkpoint: NONE
-- Next Verification: add the local Responses stub and route/UI E2E, then confirm the stub is healthy and the missing extraction control fails at the intended assertion
-- Last Code Commit: 25397eb feat: orchestrate safe requirement extraction
-- Last Commit: 25397eb feat: orchestrate safe requirement extraction
-- Last Updated: 2026-08-25 16:32:23 +09:00
+- Next Verification: extend the requirement extraction E2E, then confirm creation remains green while the missing result page fails at the evidence-view assertion
+- Last Code Commit: fe6e427 feat: add requirement extraction vertical flow
+- Last Commit: fe6e427 feat: add requirement extraction vertical flow
+- Last Updated: 2026-08-25 17:31:13 +09:00
 
 ## Milestones
 
@@ -24,7 +24,7 @@
 | M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
-| M08 | Requirement Extraction | IN_PROGRESS — TASK_7_COMPLETE | Policy-first orchestration blocks non-ALLOW documents before lookup/AI/persistence, reuses canonical fingerprints, validates non-empty evidence-backed drafts, calls AI once without retries, and records only fixed safe failures; Task 8 vertical route is next |
+| M08 | Requirement Extraction | IN_PROGRESS — TASK_8_COMPLETE | Deterministic loopback Responses stub and authenticated parse-only route prove one-call AI drafts, fingerprint reuse, viewer/cross/anonymous denial, non-ALLOW zero calls, failure no-snapshot behavior, and M06/M07 regressions; Task 9 evidence view is next |
 | M09 | Eval Harness | NOT_STARTED | |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | NOT_STARTED | |
