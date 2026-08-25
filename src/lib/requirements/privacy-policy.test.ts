@@ -82,6 +82,7 @@ describe("M08 requirement extraction contract", () => {
 	it("keeps every fail-closed boundary error representable", () => {
 		expect(REQUIREMENT_EXTRACTION_ERROR_CODES).toEqual([
 			"AI_INPUT_LIMIT_EXCEEDED",
+			"AI_INPUT_INVALID",
 			"AI_CONFIG_MISSING",
 			"AI_PROVIDER_UNAVAILABLE",
 			"AI_PROVIDER_REFUSED",
