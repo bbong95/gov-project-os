@@ -335,7 +335,7 @@ Evidence: RED failed on the absent adapter module; final provider/output GREEN p
 - Create: `supabase/tests/database/requirement_extraction_schema_test.sql`
 - Create: `supabase/tests/database/requirement_extraction_isolation_test.sql`
 
-- [ ] **Step 1: Generate and bind the exact migration path**
+- [x] **Step 1: Generate and bind the exact migration path**
 
 Run:
 
@@ -347,7 +347,7 @@ Write-Output $m08Migration
 
 Expected: exactly one newly created path is printed. Record it in the task evidence and use only that exact file.
 
-- [ ] **Step 2: Write schema and isolation RED tests before SQL behavior**
+- [x] **Step 2: Write schema and isolation RED tests before SQL behavior**
 
 Specify:
 
@@ -358,7 +358,7 @@ Specify:
 - RLS enabled/forced; authenticated `SELECT` only through active project membership or active tenant-admin membership; anon sees zero; authenticated direct INSERT/UPDATE/DELETE denied; service role has only the DML needed by invoker functions and test cleanup.
 - Existing `documents`, `document_parses`, and `source_spans` remain immutable.
 
-- [ ] **Step 3: Run database RED**
+- [x] **Step 3: Run database RED**
 
 Run: `pnpm supabase db reset`
 
@@ -366,11 +366,11 @@ Run: `pnpm test:rls`
 
 Expected: reset/test FAIL at the new pgTAP assertions because tables, constraints, policies, and functions are absent. Record the assertion names and counts.
 
-- [ ] **Step 4: Implement minimum schema and SELECT policies only**
+- [x] **Step 4: Implement minimum schema and SELECT policies only**
 
 Use PostgreSQL enums for requirement type and atomicity, fixed CHECK constraints for provenance/policy decision/hash shapes/positive limits, `ON DELETE RESTRICT`, and composite foreign keys. Do not add a vector column, mutable status, baseline ID, reviewer fields, or M09 metrics.
 
-- [ ] **Step 5: Run schema GREEN while persistence assertions remain RED**
+- [x] **Step 5: Run schema GREEN while persistence assertions remain RED**
 
 Run: `pnpm supabase db reset`
 
@@ -378,9 +378,11 @@ Run: `pnpm test:rls`
 
 Expected: catalog/RLS/grant assertions PASS; persistence function assertions remain the only expected failures.
 
-- [ ] **Step 6: Commit the schema slice**
+- [x] **Step 6: Commit the schema slice**
 
 Run: `git add $m08Migration supabase/tests/database/requirement_extraction_schema_test.sql supabase/tests/database/requirement_extraction_isolation_test.sql && git commit -m "feat: add isolated requirement snapshot schema"`
+
+Evidence: the Supabase CLI emitted and bound `supabase/migrations/20260825055554_requirement_extraction.sql`. Empty-migration RED left all seven existing DB files green while 49/55 schema assertions and the absent-table isolation setup failed. After minimum schema/RLS/grants, isolation passed 27/27 and schema passed 48/55; only seven deliberately absent Task 5 function assertions remained RED. Committed as `d201a97`.
 
 ---
 
