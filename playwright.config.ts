@@ -5,6 +5,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 const localRequire = createRequire(resolve(process.cwd(), "package.json"));
 
+const nextDevServerTimeoutMs = Number(
+	process.env.PW_NEXT_DEV_TIMEOUT_MS ?? 120_000,
+);
+
 function backendSecret(): string {
 	if (process.env.SUPABASE_BACKEND_SECRET) {
 		return process.env.SUPABASE_BACKEND_SECRET;
@@ -60,7 +64,7 @@ export default defineConfig({
 			command: "pnpm dev --hostname 127.0.0.1",
 			url: "http://127.0.0.1:3000",
 			reuseExistingServer: false,
-			timeout: 120_000,
+			timeout: nextDevServerTimeoutMs,
 			stdout: "ignore",
 			env: {
 				SUPABASE_BACKEND_SECRET: backendSecret(),
