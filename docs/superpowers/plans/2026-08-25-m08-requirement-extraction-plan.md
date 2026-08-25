@@ -482,21 +482,21 @@ export async function persistTrustedRequirementExtraction(input: PersistRequirem
 export async function recordTrustedRequirementExtractionOutcome(input: RecordOutcomeInput): Promise<void>;
 ```
 
-- [ ] **Step 1: Write RED adapter tests**
+- [x] **Step 1: Write RED adapter tests**
 
 Assert import is server-only; a missing `SUPABASE_BACKEND_SECRET` fails closed before HTTP; the backend key never comes from request/form values; persistence invokes `persist_requirement_extraction` with exact snake-case arguments; safe outcome invokes `record_requirement_extraction_outcome`; RPC errors become fixed internal errors without exposing response bodies. Keep every existing M07 trusted-server assertion.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm test -- src/lib/supabase/trusted-server.test.ts src/lib/requirements/trusted-requirement-extraction.test.ts`
 
 Expected: M07 tests PASS; M08 module/export assertions FAIL.
 
-- [ ] **Step 3: Implement minimum adapters**
+- [x] **Step 3: Implement minimum adapters**
 
 Export the existing private factory from `trusted-server.ts`; do not change its credentials or M07 parse RPC behavior. Put M08 mapping in its own requirement module.
 
-- [ ] **Step 4: Run GREEN and secret scan**
+- [x] **Step 4: Run GREEN and secret scan**
 
 Run: `pnpm test -- src/lib/supabase/trusted-server.test.ts src/lib/requirements/trusted-requirement-extraction.test.ts`
 
@@ -504,9 +504,11 @@ Run: `rg -n "SUPABASE_BACKEND_SECRET|OPENAI_API_KEY" src/app src/components --gl
 
 Expected: tests PASS; no Client Component or browser payload reads either secret.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/lib/supabase src/lib/requirements/trusted-requirement-extraction* && git commit -m "feat: add trusted requirement persistence adapters"`
+
+Evidence: the first targeted run passed both existing M07 trusted-server tests and failed only because the M08 adapter module was absent. A type-contract RED then exposed an invented privacy-classification union; the implementation now reuses the product type and narrows persistence to `PUBLIC|INTERNAL`. Final targeted tests passed 9/9, typecheck/lint and Eval passed, the production browser-secret scan found no references, and the single-worker full unit suite passed 12/12 files and 98/98 tests. Two default-parallel full runs hit only the known 5-second large-TXT test timeout; the unchanged case passed alone in 0.9s. Committed as `9cfc9f`.
 
 ---
 
