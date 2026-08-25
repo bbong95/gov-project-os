@@ -106,6 +106,7 @@ describe("validateAndMapRequirementOutput", () => {
 	});
 
 	it.each([
+		{ name: "empty candidate set", value: { candidates: [] } },
 		{ name: "null root", value: null },
 		{ name: "array root", value: [] },
 		{ name: "missing candidates", value: {} },

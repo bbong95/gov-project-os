@@ -138,7 +138,7 @@ export async function validateAndMapRequirementOutput(input: {
 		return invalidOutput();
 	}
 	const rawCandidates = input.value.candidates;
-	if (!Array.isArray(rawCandidates)) {
+	if (!Array.isArray(rawCandidates) || rawCandidates.length === 0) {
 		return invalidOutput();
 	}
 	if (rawCandidates.length > REQUIREMENT_EXTRACTION_LIMITS.maxCandidates) {

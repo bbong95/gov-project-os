@@ -26,6 +26,7 @@ const REQUIREMENT_CANDIDATE_SCHEMA = {
 	properties: {
 		candidates: {
 			type: "array",
+			minItems: 1,
 			maxItems: REQUIREMENT_EXTRACTION_LIMITS.maxCandidates,
 			items: {
 				type: "object",

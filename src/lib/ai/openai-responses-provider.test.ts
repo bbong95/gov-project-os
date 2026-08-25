@@ -144,6 +144,7 @@ describe("OpenAI Responses requirement provider", () => {
 						properties: {
 							candidates: {
 								type: "array",
+								minItems: 1,
 								maxItems: 500,
 								items: {
 									type: "object",
