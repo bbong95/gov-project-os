@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M10 Human Requirement Workbench (IMPLEMENTATION)
-- Last Completed Milestone: M09 Eval Harness
-- Current Task: M10 — review-state machine (AI_DRAFT/SOURCE_VERIFIED/HUMAN_VERIFIED/REVIEW_REQUIRED/REJECTED), 3-pane keyboard workbench, human-only merge/split, keyboard E2E RED first
+- Current Milestone: M11 Requirement Baseline V1 (IMPLEMENTATION)
+- Last Completed Milestone: M10 Human Requirement Workbench
+- Current Task: M11 — immutable baseline tables/RPC (HUMAN_VERIFIED-only snapshot, version+content hash, no in-place mutation), trusted adapter, UI approval, E2E
 - Blocked By: NONE
 - Human Checkpoint: NONE (user issued standing "continue to the end" directive on 2026-08-26)
-- Next Verification: M10 DB migration RED (pgTAP review-state + trusted RPC), then trusted adapter, actions, keyboard E2E
-- Last Code Commit: b75fd2e test: add requirement eval harness
-- Last Commit: b75fd2e
+- Next Verification: M11 DB migration RED (pgTAP finalize rules), then adapter, action, E2E
+- Last Code Commit: 36f55c2 feat: add human requirement workbench
+- Last Commit: 36f55c2
 - Last Updated: 2026-08-26 (M08 evidence recorded)
 
 ## Milestones
