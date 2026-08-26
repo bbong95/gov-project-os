@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M11 Requirement Baseline V1 (IMPLEMENTATION)
-- Last Completed Milestone: M10 Human Requirement Workbench
-- Current Task: M11 — immutable baseline tables/RPC (HUMAN_VERIFIED-only snapshot, version+content hash, no in-place mutation), trusted adapter, UI approval, E2E
+- Current Milestone: M12 Independent First Slice Audit (VERIFICATION)
+- Last Completed Milestone: M11 Requirement Baseline V1
+- Current Task: M12 — fresh verification matrix (audit, no feature additions)
 - Blocked By: NONE
 - Human Checkpoint: NONE (user issued standing "continue to the end" directive on 2026-08-26)
-- Next Verification: M11 DB migration RED (pgTAP finalize rules), then adapter, action, E2E
-- Last Code Commit: 36f55c2 feat: add human requirement workbench
-- Last Commit: 36f55c2
+- Next Verification: M12 fresh full matrix: typecheck/lint/test/eval/db reset/test:rls/advisors/E2E/a11y/build/workers-preview — record all PASS
+- Last Code Commit: d2a37d4 feat: add immutable requirement baseline
+- Last Commit: d2a37d4
 - Last Updated: 2026-08-26 (M08 evidence recorded)
 
 ## Milestones
@@ -27,7 +27,8 @@
 | M08 | Requirement Extraction | COMPLETE | Task 9 RED reconstructed (page hidden → exact h1 failure) then GREEN 4/4 + parse regression; Task 10 a11y RED (blocking state role=status → fixed to role=alert) then GREEN 4/4; Task 11 full matrix: audit clean, typecheck/lint 0, unit 118/118, Eval 1/1, db reset + RLS 320/320, advisors clean, E2E 11/11, a11y 8/8, build 0, post-build secret scan 0 hits, Workers preview exit 0; KRDS design system adopted per user direction with independent review (1 HIGH visual regression fixed, 0 security findings); Codex sealed scan SKIPPED (tool unavailable) with compensating independent review recorded |
 | M09 | Eval Harness | COMPLETE | E01–E12 taxonomy; synthetic golden dataset (SER-001/PMR-001/PSR-001 + injection fixture); 8 deterministic eval checks covering the 6 required evals (Completeness E01, Source Fidelity E02, Unsupported Assertion E03, Duplicate E04/E05, Schema/Classification E06, Cardinality E07/E08, Mapping E09, Traceability E10); RED (modules hidden → import failure) then GREEN 12/12; exit-code gate proven live (failing probe → exit 1, restored → exit 0); typecheck/lint 0 |
 | M10 | Human Workbench | NOT_STARTED | |
-| M11 | Requirement Baseline | NOT_STARTED | |
+| M11 | Requirement Baseline | COMPLETE | Frozen HUMAN_VERIFIED snapshot with version+content hash; finalize refuses AI_DRAFT/SOURCE_VERIFIED/REVIEW_REQUIRED and HUMAN_VERIFIED without SourceSpan; service_role UPDATE/DELETE denied (test cleanup ordered); pgTAP 33 assertions; E2E creates v1 and appends v2; review=created PRG |
+| M12 | First Slice Audit | IN_PROGRESS | |
 | M12 | First Slice Audit | NOT_STARTED | |
 | M13 | Proposal | NOT_STARTED | |
 | M14 | Contract Baseline | NOT_STARTED | |
