@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AppHeader } from "../../../../../components/AppHeader";
 import type { SourceLocation } from "../../../../../lib/parsing/document-parser";
 import {
 	type RequirementAtomicity,
 	type RequirementType,
 } from "../../../../../lib/requirements/requirement-extraction";
 import { createServerSupabaseClient } from "../../../../../lib/supabase/server";
+import { logout } from "../../../actions";
 
 type RequirementResultPageProps = {
 	params: Promise<{ projectId: string; runId: string }>;
@@ -154,138 +156,144 @@ export default async function RequirementResultPage({
 	}
 
 	return (
-		<main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-12">
-			<a
-				className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded-md focus:bg-white focus:p-3 focus:outline-3 focus:outline-blue-700"
-				href="#requirement-candidates"
-			>
-				요구사항 후보 목록으로 건너뛰기
-			</a>
-			<header className="space-y-3 border-b border-slate-300 pb-6">
+		<>
+			<AppHeader
+				actions={
+					<form action={logout}>
+						<button className="krds-btn small secondary" type="submit">
+							로그아웃
+						</button>
+					</form>
+				}
+			/>
+			<main className="app-inner app-page">
+				<a className="app-skip-link" href="#requirement-candidates">
+					요구사항 후보 목록으로 건너뛰기
+				</a>
 				<Link
-					className="inline-flex min-h-11 items-center text-sm font-semibold text-blue-800 underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+					className="krds-btn small text app-back-link"
 					href={"/projects/" + projectId + "/rfp"}
 				>
 					RFP 목록으로 돌아가기
 				</Link>
-				<p className="font-semibold text-amber-800">AI 초안</p>
-				<h1 className="text-3xl font-semibold tracking-tight">
-					요구사항 AI 초안
-				</h1>
-				<p className="text-slate-700">{document.original_filename}</p>
-				<p className="leading-7 text-slate-700">
-					원문 증거와 AI 해석을 분리해 표시합니다. 이 화면에서는 편집하거나
-					Baseline을 만들 수 없습니다.
+				<p>
+					<span className="krds-badge bg-light-warning">AI 초안</span>
 				</p>
-			</header>
+				<h1 className="app-page-title">요구사항 AI 초안</h1>
+				<p className="app-muted">{document.original_filename}</p>
+				<p className="app-page-lead">
+					원문 증거와 AI 해석을 분리해 표시합니다. 이 화면에서는 편집하거나 Baseline을 만들 수
+					없습니다.
+				</p>
 
-			<section
-				aria-labelledby="requirement-candidates-heading"
-				className="py-8"
-				id="requirement-candidates"
-			>
-				<h2 className="text-xl font-semibold" id="requirement-candidates-heading">
-					요구사항 후보
-				</h2>
-				<ol className="mt-5 space-y-8">
-					{candidates.map((candidate) => {
-						const officialId = candidate.official_id ?? "식별자 없음";
-						const candidateEvidence =
-							evidenceByCandidateId.get(candidate.id) ?? [];
-						return (
-							<li key={candidate.id}>
-								<article
-									aria-label={
-										"요구사항 후보 " +
-										candidate.candidate_order +
-										" " +
-										officialId
-									}
-									className="rounded-md border border-slate-300 bg-white p-5"
-								>
-									<h3 className="text-xl font-semibold">
-										후보 {candidate.candidate_order} · {officialId}
-									</h3>
-									<dl className="mt-4 grid gap-2 text-sm sm:grid-cols-[10rem_1fr]">
-										<dt className="font-medium">공식 식별자</dt>
-										<dd>{officialId}</dd>
-										<dt className="font-medium">요구사항 유형</dt>
-										<dd>
-											{
-												REQUIREMENT_TYPE_LABELS[
-													candidate.requirement_type as RequirementType
-												]
-											}
-										</dd>
-										<dt className="font-medium">원자성</dt>
-										<dd>
-											{
-												ATOMICITY_LABELS[
-													candidate.atomicity as RequirementAtomicity
-												]
-											}
-										</dd>
-										<dt className="font-medium">출처 상태</dt>
-										<dd>AI 초안</dd>
-									</dl>
-
-									<h4 className="mt-6 font-semibold">AI 해석</h4>
-									<p className="mt-2 leading-7">{candidate.interpretation}</p>
-
-									<h4 className="mt-6 font-semibold">원문 인용</h4>
-									<pre
-										className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-md bg-slate-100 p-4 font-mono text-sm"
-										data-testid="candidate-source-text"
+				<section
+					aria-labelledby="requirement-candidates-heading"
+					className="app-section"
+					id="requirement-candidates"
+				>
+					<h2 className="app-section-title" id="requirement-candidates-heading">
+						요구사항 후보
+					</h2>
+					<ol className="app-candidate-list">
+						{candidates.map((candidate) => {
+							const officialId = candidate.official_id ?? "식별자 없음";
+							const candidateEvidence =
+								evidenceByCandidateId.get(candidate.id) ?? [];
+							return (
+								<li key={candidate.id}>
+									<article
+										aria-label={
+											"요구사항 후보 " +
+											candidate.candidate_order +
+											" " +
+											officialId
+										}
+										className="app-span-card"
 									>
-										{candidate.source_text}
-									</pre>
+										<h3>
+											후보 {candidate.candidate_order} · {officialId}
+										</h3>
+										<dl className="app-meta-grid">
+											<dt>공식 식별자</dt>
+											<dd>{officialId}</dd>
+											<dt>요구사항 유형</dt>
+											<dd>
+												{
+													REQUIREMENT_TYPE_LABELS[
+														candidate.requirement_type as RequirementType
+													]
+												}
+											</dd>
+											<dt>원자성</dt>
+											<dd>
+												{
+													ATOMICITY_LABELS[
+														candidate.atomicity as RequirementAtomicity
+													]
+												}
+											</dd>
+											<dt>출처 상태</dt>
+											<dd>AI 초안</dd>
+										</dl>
 
-									<h4 className="mt-6 font-semibold">SourceSpan 증거</h4>
-									<ol className="mt-3 space-y-4">
-										{candidateEvidence.map((evidence) => {
-											const sourceSpan = sourceSpanById.get(
-												evidence.source_span_id,
-											);
-											if (!sourceSpan) {
-												return null;
-											}
-											return (
-												<li
-													className="rounded-md border border-slate-200 p-4"
-													key={evidence.source_span_id}
-												>
-													<p className="text-sm text-slate-700">
-														{locationLabel(
-															sourceSpan.location as SourceLocation,
-														)}
-													</p>
-													<pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-md bg-slate-100 p-3 font-mono text-sm">
-														{sourceSpan.original_text}
-													</pre>
-													<Link
-														className="mt-3 inline-flex min-h-11 items-center font-semibold text-blue-800 underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-														href={
-															"/projects/" +
-															projectId +
-															"/documents/" +
-															run.document_id +
-															"/source#span-" +
-															sourceSpan.id
-														}
+										<h4>AI 해석</h4>
+										<p>{candidate.interpretation}</p>
+
+										<h4>원문 인용</h4>
+										<pre
+											className="app-source-text"
+											data-testid="candidate-source-text"
+										>
+											{candidate.source_text}
+										</pre>
+
+										<h4>SourceSpan 증거</h4>
+										<ol className="app-span-list">
+											{candidateEvidence.map((evidence) => {
+												const sourceSpan = sourceSpanById.get(
+													evidence.source_span_id,
+												);
+												if (!sourceSpan) {
+													return null;
+												}
+												return (
+													<li
+														className="app-evidence-item"
+														key={evidence.source_span_id}
 													>
-														{officialId} 후보 SourceSpan{" "}
-														{evidence.source_order} 증거 보기
-													</Link>
-												</li>
-											);
-										})}
-									</ol>
-								</article>
-							</li>
-						);
-					})}
-				</ol>
-			</section>
-		</main>
+														<p className="app-muted">
+															{locationLabel(
+																sourceSpan.location as SourceLocation,
+															)}
+														</p>
+														<pre className="app-source-text app-source-text-tight">
+															{sourceSpan.original_text}
+														</pre>
+														<Link
+															className="krds-btn small secondary"
+															href={
+																"/projects/" +
+																projectId +
+																"/documents/" +
+																run.document_id +
+																"/source#span-" +
+																sourceSpan.id
+															}
+														>
+															{officialId} 후보 SourceSpan{" "}
+															{evidence.source_order} 증거 보기
+														</Link>
+													</li>
+												);
+											})}
+										</ol>
+									</article>
+								</li>
+							);
+						})}
+					</ol>
+				</section>
+			</main>
+		</>
 	);
 }

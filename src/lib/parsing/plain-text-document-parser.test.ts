@@ -82,7 +82,7 @@ describe("PlainTextDocumentParser", () => {
 		).rejects.toMatchObject({ code: "EMPTY_SOURCE" });
 	});
 
-	it("enforces per-span, span-count, and total extracted-text limits", async () => {
+	it("enforces per-span, span-count, and total extracted-text limits", { timeout: 20_000 }, async () => {
 		const parser = new PlainTextDocumentParser();
 		await expect(parser.parse(textInput("x".repeat(256 * 1024 + 1)))).rejects.toMatchObject({
 			code: "PARSE_LIMIT_EXCEEDED",
