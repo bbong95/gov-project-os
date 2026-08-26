@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import "krds-uiux/resources/css/token/krds_tokens.css";
-import "krds-uiux/resources/css/common/common.css";
-import "krds-uiux/resources/css/component/component.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +15,9 @@ export default function RootLayout({
 		<html lang="ko">
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
+				<link href="/krds/css/token/krds_tokens.css" rel="stylesheet"></link>
+				<link href="/krds/css/common/common.css" rel="stylesheet"></link>
+				<link href="/krds/css/component/component.css" rel="stylesheet"></link>
 			</head>
 			<body>{children}</body>
 		</html>
