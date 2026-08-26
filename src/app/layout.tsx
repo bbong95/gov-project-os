@@ -15,8 +15,11 @@ export default function RootLayout({
 		<html lang="ko">
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
+				{/* eslint-disable-next-line @next/next/no-css-tags -- KRDS CSS is served as static assets to keep the dev runtime independent of node_modules symlink resolution. */}
 				<link href="/krds/css/token/krds_tokens.css" rel="stylesheet"></link>
+				{/* eslint-disable-next-line @next/next/no-css-tags */}
 				<link href="/krds/css/common/common.css" rel="stylesheet"></link>
+				{/* eslint-disable-next-line @next/next/no-css-tags */}
 				<link href="/krds/css/component/component.css" rel="stylesheet"></link>
 			</head>
 			<body>{children}</body>

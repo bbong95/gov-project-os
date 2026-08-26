@@ -141,7 +141,6 @@ test("editor reaches the AI draft read-only with semantic status and no violatio
 		/\/documents\/[0-9a-f-]{36}\/source#span-[0-9a-f-]{36}$/,
 	);
 	allowedDocumentId = evidenceHref!.split("/documents/")[1]!.split("/")[0];
-	const spanId = evidenceHref!.split("#span-")[1];
 
 	await expect(
 		page.getByRole("button", { name: WRITE_CONTROL_PATTERN }),
