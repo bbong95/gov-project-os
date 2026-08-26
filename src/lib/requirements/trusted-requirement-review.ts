@@ -133,3 +133,43 @@ export async function splitTrustedRequirementCandidate(
 	}
 	return { candidateIds: data.candidateIds };
 }
+
+export type CreateBaselineInput = {
+	actorId: string;
+	runId: string;
+};
+
+export type CreateBaselineResult = {
+	baselineId: string;
+	version: number;
+	contentSha256: string;
+	candidateCount: number;
+};
+
+function isBaselineResult(value: unknown): value is CreateBaselineResult {
+	if (value === null || typeof value !== "object") {
+		return false;
+	}
+	const record = value as Record<string, unknown>;
+	return (
+		typeof record.baselineId === "string" &&
+		typeof record.version === "number" &&
+		typeof record.contentSha256 === "string" &&
+		typeof record.candidateCount === "number"
+	);
+}
+
+export async function createTrustedRequirementBaseline(
+	input: CreateBaselineInput,
+): Promise<CreateBaselineResult> {
+	const client = createTrustedSupabaseClient();
+	const { data, error } = await client.rpc("create_requirement_baseline", {
+		p_actor_id: input.actorId,
+		p_run_id: input.runId,
+	});
+
+	if (error || !isBaselineResult(data)) {
+		throw new Error("Trusted requirement baseline failed.");
+	}
+	return data;
+}

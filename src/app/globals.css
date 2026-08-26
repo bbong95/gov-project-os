@@ -378,3 +378,7 @@ body {
 	gap: 12px;
 	justify-items: start;
 }
+
+.app-baseline-form {
+	margin-top: 24px;
+}

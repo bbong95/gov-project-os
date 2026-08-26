@@ -277,6 +277,48 @@ test("editor splits a multi-evidence candidate into two human-verified parts", a
 	).toHaveCount(1);
 });
 
+test("editor creates an immutable requirement baseline and re-creating adds a version", async ({
+	page,
+}) => {
+	await login(page, fixture.assignedEmail, fixture.assignedPassword);
+	await page.goto(allowedRunHref);
+
+	async function currentBaselineVersion(): Promise<number | null> {
+		const heading = page.getByRole("heading", {
+			name: /요구사항 Baseline v\d+/,
+		});
+		if ((await heading.count()) === 0) {
+			return null;
+		}
+		const text = (await heading.textContent()) ?? "";
+		const match = text.match(/v(\d+)/);
+		return match ? Number(match[1]) : null;
+	}
+
+	await page.getByRole("button", { name: "요구사항 Baseline 생성" }).focus();
+	await page.keyboard.press("Enter");
+	await page.waitForURL(/review=created/);
+	const versionBefore = await currentBaselineVersion();
+	expect(versionBefore).not.toBeNull();
+
+	const baselineSection = page
+		.getByRole("region", { name: new RegExp("요구사항 Baseline v" + versionBefore) });
+	await expect(baselineSection).toBeVisible();
+	await expect(
+		baselineSection.getByText(/^[0-9a-f]{64}$/).first(),
+	).toBeVisible();
+
+	// Re-creating never mutates an existing version; it appends the next one.
+	await page.getByRole("button", { name: "요구사항 Baseline 생성" }).focus();
+	await page.keyboard.press("Enter");
+	await expect
+		.poll(async () => currentBaselineVersion(), { timeout: 30_000 })
+		.toBeGreaterThan(versionBefore!);
+	const versionAfter = await currentBaselineVersion();
+	expect(versionAfter).not.toBeNull();
+	expect(versionAfter!).toBeGreaterThan(versionBefore!);
+});
+
 test("viewer sees the workbench read-only without any review control", async ({
 	page,
 }) => {

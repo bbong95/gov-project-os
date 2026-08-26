@@ -10,6 +10,7 @@ vi.mock("server-only", () => {
 });
 
 import {
+	createTrustedRequirementBaseline,
 	mergeTrustedRequirementCandidates,
 	reviewTrustedRequirementCandidate,
 	splitTrustedRequirementCandidate,
@@ -186,5 +187,45 @@ describe("trusted requirement review adapters", () => {
 			splitTrustedRequirementCandidate(SPLIT_INPUT),
 		).rejects.toThrow();
 		expect(fetchCalled).toBe(false);
+	});
+});
+
+
+describe("trusted requirement baseline adapter", () => {
+	it("invokes the baseline RPC with exact arguments and maps the snapshot result", async () => {
+		vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://synthetic.invalid");
+		vi.stubEnv("SUPABASE_BACKEND_SECRET", "synthetic-backend-secret");
+		const state = stubRpcResponse({
+			baselineId: "58000000-0000-4000-8000-000000000101",
+			version: 1,
+			contentSha256: "a".repeat(64),
+			candidateCount: 2,
+		});
+
+		await expect(
+			createTrustedRequirementBaseline({ actorId: ACTOR_ID, runId: RUN_ID }),
+		).resolves.toEqual({
+			baselineId: "58000000-0000-4000-8000-000000000101",
+			version: 1,
+			contentSha256: "a".repeat(64),
+			candidateCount: 2,
+		});
+		expect(state.capturedUrl).toBe(
+			"https://synthetic.invalid/rest/v1/rpc/create_requirement_baseline",
+		);
+		expect(state.capturedBody).toEqual({
+			p_actor_id: ACTOR_ID,
+			p_run_id: RUN_ID,
+		});
+	});
+
+	it("maps malformed baseline responses to the fixed error", async () => {
+		vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://synthetic.invalid");
+		vi.stubEnv("SUPABASE_BACKEND_SECRET", "synthetic-backend-secret");
+		stubRpcResponse({ version: "one" });
+
+		await expect(
+			createTrustedRequirementBaseline({ actorId: ACTOR_ID, runId: RUN_ID }),
+		).rejects.toThrow("Trusted requirement baseline failed.");
 	});
 });

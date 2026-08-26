@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+	createTrustedRequirementBaseline,
 	mergeTrustedRequirementCandidates,
 	reviewTrustedRequirementCandidate,
 	splitTrustedRequirementCandidate,
@@ -238,4 +239,23 @@ export async function splitCandidateAction(formData: FormData): Promise<void> {
 		redirectToRun(projectId, runId, "failed");
 	}
 	redirectToRun(projectId, runId, "split");
+}
+
+export async function createBaselineAction(formData: FormData): Promise<void> {
+	const projectId = readText(formData, "projectId");
+	const runId = readText(formData, "runId");
+	const context = await loadReviewContext(projectId, runId);
+	if (!context) {
+		redirect("/login");
+	}
+
+	try {
+		await createTrustedRequirementBaseline({
+			actorId: context.actorId,
+			runId: context.runId,
+		});
+	} catch {
+		redirectToRun(projectId, runId, "failed");
+	}
+	redirectToRun(projectId, runId, "created");
 }

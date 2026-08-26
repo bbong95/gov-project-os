@@ -202,6 +202,14 @@ async function cleanupRfpFixture(
 		);
 	}
 	await requireSuccess(
+		admin.from("requirement_baseline_items").delete().in("project_id", projectIds),
+		"Synthetic baseline item cleanup failed",
+	);
+	await requireSuccess(
+		admin.from("requirement_baselines").delete().in("project_id", projectIds),
+		"Synthetic baseline cleanup failed",
+	);
+	await requireSuccess(
 		admin.from("requirement_candidate_source_spans").delete().in("project_id", projectIds),
 		"Synthetic requirement candidate source cleanup failed",
 	);

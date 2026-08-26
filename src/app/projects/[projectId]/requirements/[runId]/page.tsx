@@ -9,6 +9,7 @@ import {
 import { createServerSupabaseClient } from "../../../../../lib/supabase/server";
 import { logout } from "../../../actions";
 import {
+	createBaselineAction,
 	mergeCandidatesAction,
 	reviewCandidateAction,
 	splitCandidateAction,
@@ -66,6 +67,7 @@ const REVIEW_STATUS_MESSAGES: Record<string, string> = {
 	edited: "검토 상태가 저장되었습니다: 해석 편집",
 	merged: "선택한 후보를 병합했습니다.",
 	split: "후보를 분할했습니다.",
+	created: "요구사항 Baseline이 생성되었습니다.",
 };
 
 function locationLabel(location: SourceLocation): string {	switch (location.kind) {
@@ -119,7 +121,7 @@ export default async function RequirementResultPage({
 		notFound();
 	}
 
-	const [documentResult, candidatesResult, evidenceLinksResult, projectMembershipResult, tenantMembershipResult] =
+	const [documentResult, candidatesResult, evidenceLinksResult, projectMembershipResult, tenantMembershipResult, baselineResult] =
 		await Promise.all([
 			supabase
 				.from("documents")
@@ -153,6 +155,14 @@ export default async function RequirementResultPage({
 				.select("role")
 				.eq("tenant_id", run.tenant_id)
 				.eq("user_id", userId)
+				.maybeSingle(),
+			supabase
+				.from("requirement_baselines")
+				.select("version, content_sha256, candidate_count, created_at")
+				.eq("run_id", run.id)
+				.eq("project_id", projectId)
+				.order("version", { ascending: false })
+				.limit(1)
 				.maybeSingle(),
 		]);
 	const document = documentResult.data;
@@ -574,6 +584,19 @@ export default async function RequirementResultPage({
 								</button>
 							</form>
 						) : null}
+						{canReview ? (
+							<form action={createBaselineAction} className="app-baseline-form">
+								<input name="projectId" type="hidden" value={projectId} />
+								<input name="runId" type="hidden" value={runId} />
+								<button
+									aria-label="요구사항 Baseline 생성"
+									className="krds-btn medium primary"
+									type="submit"
+								>
+									Baseline 생성
+								</button>
+							</form>
+						) : null}
 					</section>
 
 					<aside aria-label="원문 증거" className="app-workbench-source">
@@ -593,6 +616,29 @@ export default async function RequirementResultPage({
 						</ol>
 					</aside>
 				</div>
+
+				{baselineResult.data ? (
+					<section
+						aria-labelledby="baseline-heading"
+						className="app-section"
+						id="requirement-baseline"
+					>
+						<h2 className="app-section-title" id="baseline-heading">
+							요구사항 Baseline v{baselineResult.data.version}
+						</h2>
+						<dl className="app-meta-grid">
+							<dt>버전</dt>
+							<dd>{baselineResult.data.version}</dd>
+							<dt>확정 후보 수</dt>
+							<dd>{baselineResult.data.candidate_count}</dd>
+							<dt>내용 해시 (SHA-256)</dt>
+							<dd>{baselineResult.data.content_sha256}</dd>
+						</dl>
+						<p className="app-muted">
+							Baseline은 불변 스냅샷입니다. 변경이 필요하면 새 버전이 생성됩니다.
+						</p>
+					</section>
+				) : null}
 			</main>
 		</>
 	);
