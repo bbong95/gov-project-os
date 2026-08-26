@@ -25,6 +25,16 @@ Provenance > Correctness > Security/Privacy > Accessibility/Usability > Traceabi
 8. Verify with command output before completion claim.
 9. Commit a coherent small change.
 
+## Subagent Delegation (Codex)
+Custom subagents never spawn automatically. Delegate explicitly per workflow:
+
+- Before completing any non-trivial change: spawn `reviewer` and `security-auditor` in parallel (read-only). Wait for both.
+- For UI changes: also spawn `accessibility-tester` (keyboard operability, semantic HTML, labels, focus, text status).
+- For DB/RLS/migration changes: also spawn `postgres-pro`.
+- Bug investigation order: `code-mapper` traces paths first, `browser-debugger` reproduces with evidence, then fix minimally.
+- After fixes: `test-automator` verifies targeted + affected tests pass.
+Collect all results, fix real findings, then commit one coherent change.
+
 ## Lean Architecture
 - TypeScript
 - Next.js on Cloudflare Workers/OpenNext
