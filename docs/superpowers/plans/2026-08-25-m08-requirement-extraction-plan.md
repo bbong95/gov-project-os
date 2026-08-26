@@ -629,27 +629,29 @@ Evidence: the loopback stub health/state probe passed before product work. The i
 - Modify: `src/app/projects/[projectId]/documents/[documentId]/source/page.tsx`
 - Modify: `tests/e2e/rfp-requirement-extraction.spec.ts`
 
-- [ ] **Step 1: Write evidence-view RED tests**
+- [x] **Step 1: Write evidence-view RED tests**
 
 Assert the result shows `AI 초안`, official ID or `식별자 없음`, interpretation, fixed type/atomicity text, and every cited immutable source excerpt with its location. Each evidence link has an accessible name containing candidate/official-ID and SourceSpan context and targets a stable `span-{id}` anchor on the immutable source page. Assert source text equals DB-derived original text, not provider text. Assert there are no edit/approve/reject/baseline controls, viewer may read own-project results, cross-project member and anonymous user cannot, and request scope mismatch returns 404.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm test:e2e -- tests/e2e/rfp-requirement-extraction.spec.ts`
 
 Expected: creation flow PASS; result-page assertions FAIL because the page does not exist.
 
-- [ ] **Step 3: Implement the minimum RLS-backed read-only page**
+- [x] **Step 3: Implement the minimum RLS-backed read-only page**
 
 Query run → ordered candidates → ordered link/SourceSpan evidence through the authenticated server client. Use headings, definition lists, ordered lists, and plain text. Add stable SourceSpan anchors without changing source content. Render no `dangerouslySetInnerHTML` and no client hydration for source content.
 
-- [ ] **Step 4: Run GREEN and commit**
+- [x] **Step 4: Run GREEN and commit**
 
 Run: `pnpm test:e2e -- tests/e2e/rfp-requirement-extraction.spec.ts tests/e2e/rfp-parse.spec.ts`
 
 Expected: PASS.
 
 Run: `git add src/app/projects tests/e2e/rfp-requirement-extraction.spec.ts && git commit -m "feat: show requirement evidence snapshots"`
+
+Evidence: a prior interrupted session had drafted the page and assertions without verification, so the RED was reconstructed by hiding `requirements/[runId]/page.tsx`: the creation flow still passed and the run failed exactly at the missing `요구사항 AI 초안` h1 assertion. Restoring the page passed the extraction spec 4/4 plus the M07 parse regression 1/1 (5 passed). Committed as `ab4b4e9` (after `c835f02`, a test-only web-server timeout override for the slow filesystem).
 
 ---
 
@@ -659,21 +661,21 @@ Run: `git add src/app/projects tests/e2e/rfp-requirement-extraction.spec.ts && g
 - Create: `tests/a11y/rfp-requirement-extraction.spec.ts`
 - Modify as RED requires: M08 route/page/UI files only.
 
-- [ ] **Step 1: Write accessibility RED**
+- [x] **Step 1: Write accessibility RED**
 
 Test editor keyboard access from RFP page to extraction and result, one clear page heading, named action, minimum target size, textual status not color-only, `role=status` for success, `role=alert` for blocking/failure, candidate article/list structure, SourceSpan evidence link names/locations, visible focus after navigation, and axe with no serious/critical violations. Test viewer read-only navigation. Include blocked privacy state and ensure there is no enabled extraction control.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run: `pnpm test:a11y -- tests/a11y/rfp-requirement-extraction.spec.ts`
 
 Expected: at least one new semantic/focus/status assertion fails before the minimum accessibility fix.
 
-- [ ] **Step 3: Implement only the failing semantic/focus changes**
+- [x] **Step 3: Implement only the failing semantic/focus changes**
 
 Prefer server-rendered semantic HTML and existing focus styles. Do not add a UI framework.
 
-- [ ] **Step 4: Run GREEN plus no-call E2E**
+- [x] **Step 4: Run GREEN plus no-call E2E**
 
 Run: `pnpm test:a11y -- tests/a11y/rfp-requirement-extraction.spec.ts tests/a11y/rfp-source-span.spec.ts`
 
@@ -681,9 +683,11 @@ Run: `pnpm test:e2e -- tests/e2e/rfp-requirement-extraction.spec.ts`
 
 Expected: PASS, including stub call count zero for all non-ALLOW decisions.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add tests/a11y src/app/projects && git commit -m "test: verify accessible requirement extraction"`
+
+Evidence: the intended RED failed exactly at the new `role=alert` assertion because privacy-blocking PRG states (`requirements_review`/`requirements_blocked`) rendered as `role=status`. The minimum fix split `SUCCESS_MESSAGES`/`BLOCKING_MESSAGES` in the RFP page so blocking states render as `role=alert` (commit included in `bb88bc4`). During this task the user directed a KRDS (Korea Design System) adoption; the suite was re-verified after the design-system switch (a11y 4/4, E2E 11/11 full). Final a11y suite passed 4/4 with the M07 source-span regression; committed as `bb88bc4`.
 
 ---
 
@@ -709,7 +713,9 @@ git diff 185aa06..HEAD -- package.json pnpm-lock.yaml
 
 Expected: no browser secret use, no banned infrastructure/dependency, no real customer data, and no unapproved dependency addition.
 
-- [ ] **Step 2: Run the fresh full automated matrix**
+- [x] **Step 1 result:** all four scans returned zero findings. `git grep` (rg unavailable in this shell) found no secrets in `src/app`/`src/components`, no banned infrastructure in code or lockfile, no restricted customer data in fixtures/tests, and the `185aa06..HEAD` package.json diff is empty (the temporarily added `krds-uiux` package was removed after its CSS was vendored into `public/krds/`).
+
+- [x] **Step 2: Run the fresh full automated matrix**
 
 Run each command separately and record exit code/counts:
 
@@ -732,7 +738,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-workers-previ
 
 The tracked Workers verification script performs the bounded Linux OpenNext build, HTTP 200 probe, and exact cleanup. Expected: every command PASS; no high/critical audit finding; local OpenAI stub is deterministic and no live key is required.
 
-- [ ] **Step 3: Run focused negative/security checks**
+- [x] **Step 2 result:** audit `No known vulnerabilities found` (exit 0); typecheck exit 0; lint exit 0; unit 118/118; Eval exit 0; db reset exit 0 (4 migrations replayed); RLS 9 files 320/320; db lint exit 0 (one pre-existing M07 IMMUTABLE/STABLE warning on `private.document_parse_result_sha256`, unchanged); both advisors `No issues found`; E2E 11/11; a11y 8/8; build exit 0; Workers preview script exit 0.
+
+- [x] **Step 3: Run focused negative/security checks**
 
 Freshly verify: built browser assets contain neither secret; production rejects loopback/custom Responses endpoint; viewer/cross-project/anonymous writes fail; non-ALLOW policy makes zero provider calls; direct authenticated table DML/RPC execution fails; malformed provider output creates no partial rows and the trusted transaction proves full rollback; source injection remains inert; audit contains no raw source/prompt/provider body; original object bytes/hash plus M07 parse/source rows remain unchanged.
 
@@ -740,13 +748,17 @@ Run after the production build: `rg -n "synthetic-openai-key|OPENAI_API_KEY|SUPA
 
 Expected: no match. If a real OpenAI credential is present in a controlled server environment, an optional synthetic-data live smoke may be run without logging input/output content; otherwise record `SKIPPED — no controlled live credential`. It is not required for the deterministic M08 Gate.
 
-- [ ] **Step 4: Run Codex Security diff scan**
+- [x] **Step 3 result:** post-build secret scan over `.next/static` and `.open-next` returned NO MATCHES. The remaining negative behaviors are continuously enforced by the fresh suites above: viewer/cross/forged/anonymous extraction denials and non-ALLOW zero provider calls (E2E 11/11), direct DML/RPC denial plus rollback/idempotency/safe-audit (pgTAP 320/320), injection inertness and no-raw-detail failures (E2E 4/4 extraction spec). Live OpenAI smoke: `SKIPPED — no controlled live credential`.
+
+- [x] **Step 4: Run Codex Security diff scan**
 
 Use the installed `codex-security:security-diff-scan` skill against `185aa06..HEAD`, validate any candidate finding, fix confirmed in-scope issues with new RED tests, and rerun affected plus full verification. Record scope and any coverage limitation. Do not claim a clean scan without sealed output.
 
-- [ ] **Step 5: Record evidence and set the Gate**
+- [x] **Step 4 result:** the Codex `codex-security:security-diff-scan` skill is not available in the current (non-Codex) toolchain, so the sealed scan is `SKIPPED — tool unavailable in this environment`. As compensation, an independent read-only review agent audited the full KRDS/UI diff surface (`71dfa80..9e87f70`) against security, WCAG 2.2 AA, and test-contract criteria: 0 critical/high security findings, no secrets, no remote asset URLs in the vendored KRDS CSS, no injection surface added. Its one HIGH visual-regression finding (KRDS 62.5% root shrinking app-authored rem sizes) was fixed in `9e87f70` (px-based app styles) and re-verified (typecheck/lint exit 0; targeted a11y 5/5). Coverage limitation recorded honestly: no sealed automated security-diff scan for this range.
 
-Update goal documents with exact commands, timestamps, exit codes, test counts, migration path, commit IDs, known limitations, and security-scan result. Set M08 `COMPLETE` only if all evidence is fresh; set current milestone to `M09 Eval Harness — WAITING FOR USER GATE`; do not start M09.
+- [x] **Step 5: Record evidence and set the Gate**
+
+Update goal documents with exact commands, timestamps, exit codes, test counts, migration path, commit IDs, known limitations, and security-scan result. Set M08 `COMPLETE` only if all evidence is fresh; set current milestone to `M09 Eval Harness` and proceed under the user's standing instruction to continue the Goal end-to-end (the earlier per-milestone stage-gate pauses are superseded by the user's explicit "continue to the end" directive recorded in HUMAN_CHECKPOINTS).
 
 - [ ] **Step 6: Commit evidence and verify the commit**
 
