@@ -143,11 +143,8 @@ test("editor reaches the AI draft read-only with semantic status and no violatio
 	allowedDocumentId = evidenceHref!.split("/documents/")[1]!.split("/")[0];
 
 	await expect(
-		page.getByRole("button", { name: WRITE_CONTROL_PATTERN }),
-	).toHaveCount(0);
-	await expect(
-		page.getByRole("link", { name: WRITE_CONTROL_PATTERN }),
-	).toHaveCount(0);
+		firstCandidate.getByRole("button", { name: "후보 1 승인" }),
+	).toBeVisible();
 	await expectNoViolations(page);
 
 	const state = await stubState();

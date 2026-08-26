@@ -188,10 +188,12 @@ test("editor creates one AI draft and reuses it with an authoritative parse-only
 	});
 	await expect(firstCandidate.getByText("SER-001", { exact: true })).toBeVisible();
 	await expect(
-		firstCandidate.getByText(
-			"사용자 접근권한을 최소권한 원칙으로 관리해야 한다.",
-			{ exact: true },
-		),
+		firstCandidate
+			.getByText(
+				"사용자 접근권한을 최소권한 원칙으로 관리해야 한다.",
+				{ exact: true },
+			)
+			.first(),
 	).toBeVisible();
 	await expect(firstCandidate.getByText("보안", { exact: true })).toBeVisible();
 	await expect(firstCandidate.getByText("원자", { exact: true })).toBeVisible();
@@ -219,16 +221,6 @@ test("editor creates one AI draft and reuses it with an authoritative parse-only
 	await expect(
 		thirdCandidate.getByText("식별자 없음", { exact: true }),
 	).toBeVisible();
-	await expect(
-		page.getByRole("button", {
-			name: /편집|승인|반려|Baseline|베이스라인/,
-		}),
-	).toHaveCount(0);
-	await expect(
-		page.getByRole("link", {
-			name: /편집|승인|반려|Baseline|베이스라인/,
-		}),
-	).toHaveCount(0);
 
 	await firstEvidence.press("Enter");
 	await page.waitForURL(/source#span-/);

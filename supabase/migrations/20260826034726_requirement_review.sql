@@ -312,8 +312,7 @@ begin
 		min(candidate.document_parse_id::text)::uuid,
 		array_agg(distinct candidate.requirement_type),
 		array_agg(distinct candidate.atomicity),
-		array_agg(candidate.official_id order by candidate.candidate_order),
-		max(candidate.candidate_order)
+		array_agg(candidate.official_id order by candidate.candidate_order)
 	into
 		v_count,
 		v_tenant_id,
@@ -322,8 +321,7 @@ begin
 		v_parse_id,
 		v_types,
 		v_atomicities,
-		v_officials,
-		v_max_order
+		v_officials
 	from public.requirement_candidates as candidate
 	where candidate.run_id = p_run_id
 		and candidate.id = any(v_ids)
@@ -334,6 +332,13 @@ begin
 			errcode = '42501',
 			message = 'REQUIREMENT_MERGE_UNAVAILABLE';
 	end if;
+
+	-- The new order must not collide with any existing candidate in the run,
+	-- including already-rejected ones.
+	select coalesce(max(candidate.candidate_order), 0)
+	into v_max_order
+	from public.requirement_candidates as candidate
+	where candidate.run_id = p_run_id;
 
 	v_new_type := case when array_length(v_types, 1) = 1 then v_types[1] else 'OTHER'::public.requirement_type end;
 	v_new_atomicity := case
@@ -515,8 +520,7 @@ begin
 		candidate.document_parse_id,
 		candidate.official_id,
 		candidate.requirement_type,
-		candidate.atomicity,
-		candidate.candidate_order
+		candidate.atomicity
 	into
 		v_tenant_id,
 		v_project_id,
@@ -524,8 +528,7 @@ begin
 		v_parse_id,
 		v_official,
 		v_type,
-		v_atomicity,
-		v_max_order
+		v_atomicity
 	from public.requirement_candidates as candidate
 	where candidate.id = p_candidate_id
 		and candidate.run_id = p_run_id
@@ -557,6 +560,13 @@ begin
 			errcode = '42501',
 			message = 'REQUIREMENT_SPLIT_UNAVAILABLE';
 	end if;
+
+	-- New parts must not collide with any existing order in the run,
+	-- including already-rejected candidates.
+	select coalesce(max(candidate.candidate_order), 0)
+	into v_max_order
+	from public.requirement_candidates as candidate
+	where candidate.run_id = p_run_id;
 
 	select coalesce(array_agg(span.ordinal order by span.ordinal), array[]::integer[])
 	into v_cited_ordinals

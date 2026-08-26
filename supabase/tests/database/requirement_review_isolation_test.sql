@@ -1,6 +1,6 @@
 ﻿begin;
 
-select plan(24);
+select plan(27);
 
 insert into auth.users (id, email)
 values
@@ -310,6 +310,31 @@ select throws_ok(
 	'blank edit interpretation is rejected'
 );
 
+-- 2h. edit rewrites the interpretation and records the reviewer.
+select is(
+	public.review_requirement_candidate(
+		'51000000-0000-4000-8000-000000000001',
+		'56000000-0000-4000-8000-000000000101',
+		'57000000-0000-4000-8000-000000000101',
+		'EDIT',
+		'수정된 해석입니다'
+	),
+	jsonb_build_object(
+		'candidateId', '57000000-0000-4000-8000-000000000101',
+		'provenanceState', 'HUMAN_VERIFIED'
+	),
+	'edit promotes the candidate to HUMAN_VERIFIED'
+);
+select is(
+	(
+		select interpretation
+		from public.requirement_candidates
+		where id = '57000000-0000-4000-8000-000000000101'
+	),
+	'수정된 해석입니다',
+	'edit persists the new interpretation'
+);
+
 reset role;
 
 -- 3. merge candidates 1 (HUMAN_VERIFIED) and 3 (REVIEW_REQUIRED) into one.
@@ -364,6 +389,16 @@ select is(
 	),
 	2,
 	'merged source candidates are rejected'
+);
+
+select is(
+	(
+		select candidate_order
+		from public.requirement_candidates
+		where interpretation = '병합된 요구사항 해석'
+	),
+	4,
+	'merged candidate order exceeds every existing order including rejected ones'
 );
 
 select throws_ok(
@@ -458,7 +493,7 @@ select is(
 		where event_type = 'REQUIREMENT_CANDIDATE_REVIEWED'
 			and actor_user_id = '51000000-0000-4000-8000-000000000001'
 	),
-	3,
+	4,
 	'human review transitions are audited'
 );
 
