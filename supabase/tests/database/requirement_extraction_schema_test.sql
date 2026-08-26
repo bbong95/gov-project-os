@@ -1,6 +1,6 @@
-begin;
+﻿begin;
 
-select plan(55);
+select plan(56);
 
 select ok(
 	to_regtype('public.requirement_type') is not null,
@@ -427,7 +427,7 @@ select is(
 	(
 		select count(*)::integer
 		from information_schema.role_table_grants
-		where grantee in ('authenticated', 'service_role')
+		where grantee in ('authenticated', 'anon')
 			and table_schema = 'public'
 			and table_name in (
 				'requirement_extraction_runs', 'requirement_candidates',
@@ -437,6 +437,18 @@ select is(
 	),
 	0,
 	'no application role can update immutable extraction snapshots'
+);
+select is(
+	(
+		select count(*)::integer
+		from information_schema.role_table_grants
+		where grantee = 'service_role'
+			and table_schema = 'public'
+			and table_name = 'requirement_candidates'
+			and privilege_type = 'UPDATE'
+	),
+	1,
+	'only the trusted review RPC role may update candidate review state'
 );
 select is(
 	(
