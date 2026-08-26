@@ -190,6 +190,7 @@ export default async function RequirementResultPage({
 					aria-labelledby="requirement-candidates-heading"
 					className="app-section"
 					id="requirement-candidates"
+					tabIndex={-1}
 				>
 					<h2 className="app-section-title" id="requirement-candidates-heading">
 						요구사항 후보

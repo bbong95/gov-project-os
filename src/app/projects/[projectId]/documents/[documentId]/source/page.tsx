@@ -116,7 +116,12 @@ export default async function SourcePage({ params }: SourcePageProps) {
 					</dl>
 				</section>
 
-				<section aria-labelledby="source-spans-heading" className="app-section" id="source-spans">
+				<section
+					aria-labelledby="source-spans-heading"
+					className="app-section"
+					id="source-spans"
+					tabIndex={-1}
+				>
 					<h2 className="app-section-title" id="source-spans-heading">
 						SourceSpan 목록
 					</h2>
