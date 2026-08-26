@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M09 Eval Harness (IMPLEMENTATION)
-- Last Completed Milestone: M08 Requirement Extraction
-- Current Task: M09 — synthetic golden dataset + 6 eval checks (Completeness, Source Fidelity, Unsupported Assertion, Duplicate, Schema, Traceability) with E01–E12 taxonomy and exit-code gate
+- Current Milestone: M10 Human Requirement Workbench (IMPLEMENTATION)
+- Last Completed Milestone: M09 Eval Harness
+- Current Task: M10 — review-state machine (AI_DRAFT/SOURCE_VERIFIED/HUMAN_VERIFIED/REVIEW_REQUIRED/REJECTED), 3-pane keyboard workbench, human-only merge/split, keyboard E2E RED first
 - Blocked By: NONE
 - Human Checkpoint: NONE (user issued standing "continue to the end" directive on 2026-08-26)
-- Next Verification: M09 RED — `pnpm test:eval` must fail on absent eval implementations, then GREEN with exit-code gate
-- Last Code Commit: 9e87f70 fix: align app styles with krds root scale and focusable skip targets
-- Last Commit: 9e87f70
+- Next Verification: M10 DB migration RED (pgTAP review-state + trusted RPC), then trusted adapter, actions, keyboard E2E
+- Last Code Commit: b75fd2e test: add requirement eval harness
+- Last Commit: b75fd2e
 - Last Updated: 2026-08-26 (M08 evidence recorded)
 
 ## Milestones
@@ -25,7 +25,7 @@
 | M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
 | M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
 | M08 | Requirement Extraction | COMPLETE | Task 9 RED reconstructed (page hidden → exact h1 failure) then GREEN 4/4 + parse regression; Task 10 a11y RED (blocking state role=status → fixed to role=alert) then GREEN 4/4; Task 11 full matrix: audit clean, typecheck/lint 0, unit 118/118, Eval 1/1, db reset + RLS 320/320, advisors clean, E2E 11/11, a11y 8/8, build 0, post-build secret scan 0 hits, Workers preview exit 0; KRDS design system adopted per user direction with independent review (1 HIGH visual regression fixed, 0 security findings); Codex sealed scan SKIPPED (tool unavailable) with compensating independent review recorded |
-| M09 | Eval Harness | IN_PROGRESS | |
+| M09 | Eval Harness | COMPLETE | E01–E12 taxonomy; synthetic golden dataset (SER-001/PMR-001/PSR-001 + injection fixture); 8 deterministic eval checks covering the 6 required evals (Completeness E01, Source Fidelity E02, Unsupported Assertion E03, Duplicate E04/E05, Schema/Classification E06, Cardinality E07/E08, Mapping E09, Traceability E10); RED (modules hidden → import failure) then GREEN 12/12; exit-code gate proven live (failing probe → exit 1, restored → exit 0); typecheck/lint 0 |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | NOT_STARTED | |
 | M12 | First Slice Audit | NOT_STARTED | |
