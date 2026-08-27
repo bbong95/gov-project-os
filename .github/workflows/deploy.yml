@@ -53,11 +53,12 @@ jobs:
       - name: Publish Supabase URL and anon key
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWR6YWh4cGdtdm5mZHphaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk1MDUsImV4cCI6MjEwMzQyNTUwNX0.DTfPf1TVfEw5SBLhnnhfiXtb7whTyl2vSHFYSjH2EI0
         run: echo "vars configured"
       - run: pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWR6YWh4cGdtdm5mZHphaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk1MDUsImV4cCI6MjEwMzQyNTUwNX0.DTfPf1TVfEw5SBLhnnhfiXtb7whTyl2vSHFYSjH2EI0
+
