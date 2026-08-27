@@ -56,8 +56,8 @@ revoke all privileges on table public.proposal_sections
 	from anon, authenticated, service_role;
 grant select on table public.proposals to authenticated;
 grant select on table public.proposal_sections to authenticated;
-grant insert, select on table public.proposals to service_role;
-grant insert, select on table public.proposal_sections to service_role;
+grant insert, select, delete on table public.proposals to service_role;
+grant insert, select, delete on table public.proposal_sections to service_role;
 
 create policy "proposals visible to project member or tenant admin"
 on public.proposals

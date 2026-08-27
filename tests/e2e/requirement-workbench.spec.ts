@@ -322,8 +322,55 @@ test("editor creates an immutable requirement baseline and re-creating adds a ve
 test("editor drafts a proposal draft sourced only from the approved baseline", async ({
 	page,
 }) => {
-	await login(page, fixture.assignedEmail, fixture.assignedPassword);
-	await page.goto(allowedRunHref);
+	// Self-contained: a fresh fixture starts without any baseline.
+	if ((await page.getByRole("heading", { name: /요구사항 Baseline v\d+/ }).count()) === 0) {
+		await page.getByLabel("RFP 원본 파일").setInputFiles({
+			name: "m13-proposal-synthetic-rfp.txt",
+			mimeType: "text/plain",
+			buffer: Buffer.from(SOURCE, "utf8"),
+		});
+		await page.getByLabel("자료 분류").selectOption("INTERNAL");
+		await page.getByRole("button", { name: "RFP 원본 업로드" }).press("Enter");
+		await page.waitForURL(/status=uploaded/, { timeout: 60_000 });
+		await page
+			.getByRole("button", { name: "m13-proposal-synthetic-rfp.txt 파싱 시작" })
+			.press("Enter");
+		await page.waitForURL(/status=parsed/, { timeout: 60_000 });
+		await page
+			.getByRole("button", { name: "m13-proposal-synthetic-rfp.txt 요구사항 추출" })
+			.press("Enter");
+		await page.waitForURL(/status=requirements_created/, { timeout: 60_000 });
+		await page
+			.getByRole("button", { name: "후보 1 승인" })
+			.focus();
+		await page.keyboard.press("Enter");
+		await page.waitForURL(/review=approved/);
+		await page.goto(allowedRunHref);
+		await page
+			.getByRole("button", { name: "후보 2 반려" })
+			.focus();
+		await page.keyboard.press("Enter");
+		await page.waitForURL(/review=rejected/);
+		await page.goto(allowedRunHref);
+		await page
+			.getByRole("button", { name: "후보 3 반려" })
+			.focus();
+		await page.keyboard.press("Enter");
+		await page.waitForURL(/review=rejected/);
+		await page.goto(allowedRunHref);
+		await page
+			.getByRole("button", { name: "요구사항 Baseline 생성" })
+			.focus();
+		await page.keyboard.press("Enter");
+		await expect
+			.poll(
+				async () =>
+					(await page.getByRole("heading", { name: /요구사항 Baseline v\d+/ }).count()) >
+					0,
+				{ timeout: 60_000 },
+			)
+			.toBe(true);
+	}
 
 	const baselineHeading = page
 		.getByRole("heading", { name: /요구사항 Baseline v\d+/ });
