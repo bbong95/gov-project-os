@@ -36,18 +36,20 @@ jobs:
       - name: Build Next.js
         run: pnpm build 2>&1 | tee /tmp/next-build.log
         shell: bash
-        continue-on-error: true
       - name: Show Next.js build tail on failure
         if: failure()
-        run: tail -n 200 /tmp/next-build.log || true
+        run: |
+          echo "===== NEXT BUILD TAIL ====="
+          tail -n 200 /tmp/next-build.log || true
         shell: bash
       - name: OpenNext build
         run: pnpm exec opennextjs-cloudflare build 2>&1 | tee /tmp/opennext-build.log
         shell: bash
-        continue-on-error: true
       - name: Show OpenNext build tail on failure
         if: failure()
-        run: tail -n 200 /tmp/opennext-build.log || true
+        run: |
+          echo "===== OPENNEXT BUILD TAIL ====="
+          tail -n 200 /tmp/opennext-build.log || true
         shell: bash
       - uses: actions/upload-artifact@v4
         with:
