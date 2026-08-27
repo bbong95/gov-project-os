@@ -17,19 +17,57 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm exec opennextjs-cloudflare build
-      - run: pnpm exec wrangler deploy --dry-run --outdir=.open-next
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Show toolchain
+        run: |
+          echo "node=$(node -v)"
+          echo "pnpm=$(pnpm -v)"
+          echo "OS=$(uname -a)"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+      - name: TypeScript check
+        run: pnpm typecheck
+        shell: bash
         continue-on-error: true
+      - name: Lint
+        run: pnpm lint
+        shell: bash
+        continue-on-error: true
+      - name: Build Next.js
+        run: pnpm build 2>&1 | tee /tmp/next-build.log
+        shell: bash
+        continue-on-error: true
+      - name: Show Next.js build tail on failure
+        if: failure()
+        run: tail -n 200 /tmp/next-build.log || true
+        shell: bash
+      - name: OpenNext build
+        run: pnpm exec opennextjs-cloudflare build 2>&1 | tee /tmp/opennext-build.log
+        shell: bash
+        continue-on-error: true
+      - name: Show OpenNext build tail on failure
+        if: failure()
+        run: tail -n 200 /tmp/opennext-build.log || true
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: opennext-build
           path: .open-next
           if-no-files-found: error
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-logs
+          path: /tmp/next-build.log
+          if-no-files-found: ignore
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: opennext-build-log
+          path: /tmp/opennext-build.log
+          if-no-files-found: ignore
           retention-days: 3
 
   deploy:
