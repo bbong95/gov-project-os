@@ -319,6 +319,43 @@ test("editor creates an immutable requirement baseline and re-creating adds a ve
 	expect(versionAfter!).toBeGreaterThan(versionBefore!);
 });
 
+test("editor drafts a proposal draft sourced only from the approved baseline", async ({
+	page,
+}) => {
+	await login(page, fixture.assignedEmail, fixture.assignedPassword);
+	await page.goto(allowedRunHref);
+
+	const baselineHeading = page
+		.getByRole("heading", { name: /요구사항 Baseline v\d+/ });
+	await expect(baselineHeading).toBeVisible();
+
+	await page.getByRole("button", { name: "제안서 초안 생성" }).focus();
+	await page.keyboard.press("Enter");
+	await page.waitForURL(/\/proposals\//);
+
+	await expect(
+		page.getByRole("heading", { level: 1, name: /제안서 v\d+/ }),
+	).toBeVisible();
+	await expect(
+		page.getByRole("status", { name: /생성되었습니다/ }),
+	).toBeVisible();
+	const expectedSections = [
+		"RFP 요구사항 매트릭스",
+		"제안서 목차",
+		"평가 항목 대응",
+		"응답 전략",
+		"근거 및 보완 항목",
+	];
+	for (const label of expectedSections) {
+		await expect(
+			page.getByRole("heading", { level: 3, name: label }),
+		).toBeVisible();
+	}
+	await expect(
+		page.getByText(/회사 실적·인증·재무|정량적 경쟁력|도출되었습니다/),
+	).toBeVisible();
+});
+
 test("viewer sees the workbench read-only without any review control", async ({
 	page,
 }) => {

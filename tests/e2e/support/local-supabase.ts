@@ -206,6 +206,14 @@ async function cleanupRfpFixture(
 		"Synthetic baseline item cleanup failed",
 	);
 	await requireSuccess(
+		admin.from("proposal_sections").delete().in("project_id", projectIds),
+		"Synthetic proposal section cleanup failed",
+	);
+	await requireSuccess(
+		admin.from("proposals").delete().in("project_id", projectIds),
+		"Synthetic proposal cleanup failed",
+	);
+	await requireSuccess(
 		admin.from("requirement_baselines").delete().in("project_id", projectIds),
 		"Synthetic baseline cleanup failed",
 	);

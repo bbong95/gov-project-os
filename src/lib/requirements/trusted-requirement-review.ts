@@ -146,6 +146,7 @@ export type CreateBaselineResult = {
 	candidateCount: number;
 };
 
+export type CreateProposalResult = never;
 function isBaselineResult(value: unknown): value is CreateBaselineResult {
 	if (value === null || typeof value !== "object") {
 		return false;
@@ -158,6 +159,7 @@ function isBaselineResult(value: unknown): value is CreateBaselineResult {
 		typeof record.candidateCount === "number"
 	);
 }
+
 
 export async function createTrustedRequirementBaseline(
 	input: CreateBaselineInput,

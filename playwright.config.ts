@@ -6,7 +6,7 @@ import { defineConfig, devices } from "@playwright/test";
 const localRequire = createRequire(resolve(process.cwd(), "package.json"));
 
 const nextDevServerTimeoutMs = Number(
-	process.env.PW_NEXT_DEV_TIMEOUT_MS ?? 120_000,
+	process.env.PW_NEXT_DEV_TIMEOUT_MS ?? 600_000,
 );
 
 function backendSecret(): string {

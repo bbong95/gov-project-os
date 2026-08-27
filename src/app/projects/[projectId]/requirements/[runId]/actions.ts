@@ -9,6 +9,7 @@ import {
 	splitTrustedRequirementCandidate,
 	type CandidateReviewAction,
 } from "../../../../../lib/requirements/trusted-requirement-review";
+import { createTrustedProposal } from "../../../../../lib/requirements/trusted-proposal";
 import { createServerSupabaseClient } from "../../../../../lib/supabase/server";
 
 const UUID_PATTERN =
@@ -258,4 +259,25 @@ export async function createBaselineAction(formData: FormData): Promise<void> {
 		redirectToRun(projectId, runId, "failed");
 	}
 	redirectToRun(projectId, runId, "created");
+}
+
+export async function createProposalAction(formData: FormData): Promise<void> {
+	const projectId = readText(formData, "projectId");
+	const runId = readText(formData, "runId");
+	const context = await loadReviewContext(projectId, runId);
+	if (!context) {
+		redirect("/login");
+	}
+
+	let proposalId: string;
+	try {
+		const result = await createTrustedProposal({
+			actorId: context.actorId,
+			runId: context.runId,
+		});
+		proposalId = result.proposalId;
+	} catch {
+		redirectToRun(projectId, runId, "failed");
+	}
+	redirect(`/projects/${projectId}/proposals/${proposalId}?created=1`);
 }

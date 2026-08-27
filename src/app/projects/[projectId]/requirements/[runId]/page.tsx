@@ -10,6 +10,7 @@ import { createServerSupabaseClient } from "../../../../../lib/supabase/server";
 import { logout } from "../../../actions";
 import {
 	createBaselineAction,
+	createProposalAction,
 	mergeCandidatesAction,
 	reviewCandidateAction,
 	splitCandidateAction,
@@ -637,6 +638,19 @@ export default async function RequirementResultPage({
 						<p className="app-muted">
 							Baseline은 불변 스냅샷입니다. 변경이 필요하면 새 버전이 생성됩니다.
 						</p>
+						{canReview ? (
+							<form action={createProposalAction} className="app-baseline-form">
+								<input name="projectId" type="hidden" value={projectId} />
+								<input name="runId" type="hidden" value={runId} />
+								<button
+									aria-label="제안서 초안 생성"
+									className="krds-btn medium primary"
+									type="submit"
+								>
+									제안서 초안 생성
+								</button>
+							</form>
+						) : null}
 					</section>
 				) : null}
 			</main>

@@ -382,3 +382,60 @@ body {
 .app-baseline-form {
 	margin-top: 24px;
 }
+
+.app-proposal-sections {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 32px;
+}
+
+.app-proposal-section h3 {
+	margin: 0 0 12px;
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.app-proposal-content {
+	background: #ffffff;
+	border: 1px solid var(--krds-border-gray-light, #e9edf2);
+	border-radius: 8px;
+	padding: 16px 20px;
+	line-height: 1.7;
+}
+
+.app-proposal-content h2,
+.app-proposal-content h3 {
+	margin: 1.25rem 0 0.5rem;
+	font-size: 1rem;
+}
+
+.app-proposal-content p {
+	margin: 0.5rem 0;
+}
+
+.app-proposal-content ul,
+.app-proposal-content ol {
+	padding-inline-start: 1.25rem;
+}
+
+.app-proposal-content li {
+	margin: 0.25rem 0;
+}
+
+.app-proposal-mono {
+	font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", monospace;
+	font-size: 13px;
+	background: var(--krds-color-light-secondary-5, #eef2f7);
+	padding: 8px 12px;
+	border-radius: 6px;
+	white-space: pre-wrap;
+	overflow-x: auto;
+	margin: 0.5rem 0;
+}
+
+.app-evidence-list {
+	margin-top: 12px;
+	font-size: 13px;
+}
