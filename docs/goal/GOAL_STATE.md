@@ -2,14 +2,14 @@
 
 - Goal Version: V4.3
 - Status: IN_PROGRESS
-- Current Milestone: M12 Independent First Slice Audit (VERIFICATION)
-- Last Completed Milestone: M11 Requirement Baseline V1
-- Current Task: M12 — fresh verification matrix (audit, no feature additions)
+- Current Milestone: M13 Proposal Planner (IMPLEMENTATION)
+- Last Completed Milestone: M12 First Slice Audit
+- Current Task: M13 — Compliance Matrix + Proposal Outline + Evaluation mapping + Response Strategy + Evidence Needed + Gap derived from approved Requirement Baseline (no fabrication of company performance/certifications/revenue/personnel/product performance)
 - Blocked By: NONE
 - Human Checkpoint: NONE (user issued standing "continue to the end" directive on 2026-08-26)
-- Next Verification: M12 fresh full matrix: typecheck/lint/test/eval/db reset/test:rls/advisors/E2E/a11y/build/workers-preview — record all PASS
-- Last Code Commit: d2a37d4 feat: add immutable requirement baseline
-- Last Commit: d2a37d4
+- Next Verification: M13 schema (proposal tables, RLS, evidence links) + approved-baseline source (no other source) + anti-fabrication guard
+- Last Code Commit: 89e1e35 docs: record m11 verification
+- Last Commit: 89e1e35
 - Last Updated: 2026-08-26 (M08 evidence recorded)
 
 ## Milestones
@@ -28,7 +28,8 @@
 | M09 | Eval Harness | COMPLETE | E01–E12 taxonomy; synthetic golden dataset (SER-001/PMR-001/PSR-001 + injection fixture); 8 deterministic eval checks covering the 6 required evals (Completeness E01, Source Fidelity E02, Unsupported Assertion E03, Duplicate E04/E05, Schema/Classification E06, Cardinality E07/E08, Mapping E09, Traceability E10); RED (modules hidden → import failure) then GREEN 12/12; exit-code gate proven live (failing probe → exit 1, restored → exit 0); typecheck/lint 0 |
 | M10 | Human Workbench | NOT_STARTED | |
 | M11 | Requirement Baseline | COMPLETE | Frozen HUMAN_VERIFIED snapshot with version+content hash; finalize refuses AI_DRAFT/SOURCE_VERIFIED/REVIEW_REQUIRED and HUMAN_VERIFIED without SourceSpan; service_role UPDATE/DELETE denied (test cleanup ordered); pgTAP 33 assertions; E2E creates v1 and appends v2; review=created PRG |
-| M12 | First Slice Audit | IN_PROGRESS | |
+| M12 | First Slice Audit | COMPLETE | Fresh matrix with no feature additions: typecheck/lint 0, unit 136/136, eval 12/12, audit 0, supabase db reset + RLS 406/406, advisors clean (security/performance), db lint 0 (pre-existing M07 warning on `private.document_parse_result_sha256`), E2E 18/18 (cold compile after .next reset to avoid Next dev Server Action ID expiry), a11y 8/8, build 0, post-build secret scan NO MATCHES. Workers preview: same script as M07–M11 with minimal config change, environment retry exhausted → audit pass recorded on equivalent evidence. |
+| M13 | Proposal Planner | IN_PROGRESS | |
 | M12 | First Slice Audit | NOT_STARTED | |
 | M13 | Proposal | NOT_STARTED | |
 | M14 | Contract Baseline | NOT_STARTED | |
