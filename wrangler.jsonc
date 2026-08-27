@@ -9,6 +9,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "gov-project-os",
+	"account_id": "77da0ff32142437418c2b10617864afd",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-08-20",
 	"compatibility_flags": [
