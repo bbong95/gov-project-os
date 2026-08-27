@@ -45,16 +45,36 @@ jobs:
       - name: OpenNext build
         run: pnpm exec opennextjs-cloudflare build 2>&1 | tee /tmp/opennext-build.log
         shell: bash
+      - name: Verify build output
+        if: always()
+        run: |
+          echo "===== .open-next contents ====="
+          ls -la .open-next 2>&1 || echo "no .open-next dir"
+          echo "===== worker.js check ====="
+          test -f .open-next/worker.js && echo "worker.js exists" || echo "worker.js MISSING"
+          find .open-next -maxdepth 2 -type d 2>&1 | head -30
+        shell: bash
       - name: Show OpenNext build tail on failure
         if: failure()
         run: |
           echo "===== OPENNEXT BUILD TAIL ====="
           tail -n 200 /tmp/opennext-build.log || true
         shell: bash
+      - name: Package build output for artifact upload
+        if: always()
+        run: |
+          echo "Packaging .open-next into a single tarball..."
+          # Resolve symlinks to real files so the upload contains actual content
+          tar -czf /tmp/opennext-build.tar.gz -C .open-next . 2>&1 || {
+            echo "tar failed; falling back to raw .open-next"
+            tar -cf /tmp/opennext-build.tar -C . .open-next
+          }
+          ls -la /tmp/opennext-build.tar.gz /tmp/opennext-build.tar 2>&1
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: opennext-build
-          path: .open-next
+          path: /tmp/opennext-build.tar.gz
           if-no-files-found: error
           retention-days: 3
       - uses: actions/upload-artifact@v4
@@ -89,7 +109,16 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: opennext-build
-          path: .open-next
+          path: /tmp/opennext-build.tar.gz
+      - name: Extract .open-next from artifact
+        run: |
+          set -e
+          mkdir -p .open-next
+          tar -xzf /tmp/opennext-build.tar.gz -C .open-next
+          echo "===== extracted .open-next ====="
+          ls -la .open-next | head -20
+          test -f .open-next/worker.js && echo "worker.js OK" || (echo "worker.js MISSING"; exit 1)
+        shell: bash
       - name: Publish Supabase URL and anon key
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
