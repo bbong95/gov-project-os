@@ -10,6 +10,10 @@ import {
 	type CandidateReviewAction,
 } from "../../../../../lib/requirements/trusted-requirement-review";
 import { createTrustedProposal } from "../../../../../lib/requirements/trusted-proposal";
+import {
+	createTrustedContractBaseline,
+	type ContractChangeType,
+} from "../../../../../lib/requirements/trusted-contract";
 import { createServerSupabaseClient } from "../../../../../lib/supabase/server";
 
 const UUID_PATTERN =
@@ -280,4 +284,44 @@ export async function createProposalAction(formData: FormData): Promise<void> {
 		redirectToRun(projectId, runId, "failed");
 	}
 	redirect(`/projects/${projectId}/proposals/${proposalId}?created=1`);
+}
+
+export async function confirmContractAction(formData: FormData): Promise<void> {
+	const projectId = readText(formData, "projectId");
+	const runId = readText(formData, "runId");
+	const proposalId = readText(formData, "proposalId");
+	const changeSummary = readText(formData, "changeSummary").trim();
+	const itemCount = Number(formData.get("itemCount") ?? 0);
+	if (!Number.isInteger(itemCount) || itemCount < 1 || itemCount > 8) {
+		redirect(`/projects/${projectId}/proposals/${proposalId}?contract=failed`);
+	}
+	const items: Array<{
+		changeType: ContractChangeType;
+		obligationText: string;
+		sourceRequirementCandidateId: string | null;
+	}> = [];
+	for (let index = 0; index < itemCount; index++) {
+		const changeType = readText(formData, `item_${index}_changeType`) as ContractChangeType;
+		const obligationText = readText(formData, `item_${index}_obligationText`).trim();
+		const sourceRequirementCandidateId = readText(formData, `item_${index}_sourceRequirementCandidateId`) || null;
+		if (!changeType || !obligationText) {
+			redirect(`/projects/${projectId}/proposals/${proposalId}?contract=failed`);
+		}
+		items.push({ changeType, obligationText, sourceRequirementCandidateId });
+	}
+	const context = await loadReviewContext(projectId, runId);
+	if (!context) {
+		redirect("/login");
+	}
+	try {
+		await createTrustedContractBaseline({
+			actorId: context.actorId,
+			runId: context.runId,
+			proposalId,
+			changeSummary: changeSummary || "자동 생성",
+			items,
+		});
+	} catch {
+		redirect(`/projects/${projectId}/proposals/${proposalId}?contract=failed`);
+	}
 }

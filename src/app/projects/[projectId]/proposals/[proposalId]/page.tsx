@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { logout } from "@/app/projects/actions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+	confirmContractAction,
+} from "@/app/projects/[projectId]/requirements/[runId]/actions";
 
 type ProposalPageProps = {
 	params: Promise<{ projectId: string; proposalId: string }>;
@@ -160,6 +163,63 @@ export default async function ProposalPage({
 						제안서 초안이 Requirement Baseline 기반으로 생성되었습니다.
 					</p>
 				) : null}
+
+				<form action={confirmContractAction} className="app-contract-form">
+					<input name="projectId" type="hidden" value={projectId} />
+					<input name="runId" type="hidden" value={proposal.run_id} />
+					<input name="proposalId" type="hidden" value={proposal.id} />
+					<input name="itemCount" type="hidden" value="1" />
+					<div className="form-group">
+						<div className="form-tit">
+							<label htmlFor="contract-change-summary">변경 요약</label>
+						</div>
+						<div className="form-conts">
+							<input
+								className="krds-input"
+								id="contract-change-summary"
+								name="changeSummary"
+								type="text"
+							/>
+						</div>
+					</div>
+					<div className="form-group">
+						<div className="form-tit">
+							<label htmlFor="item-0-change-type">의무 1 변경 유형</label>
+						</div>
+						<div className="form-conts">
+							<select
+								className="krds-form-select"
+								id="item-0-change-type"
+								name="item_0_changeType"
+							>
+								<option value="ADDED">추가</option>
+								<option value="MODIFIED">변경</option>
+								<option value="DELETED">삭제</option>
+								<option value="CONFLICT">충돌</option>
+							</select>
+						</div>
+					</div>
+					<div className="form-group">
+						<div className="form-tit">
+							<label htmlFor="item-0-obligation">의무 1 본문</label>
+						</div>
+						<div className="form-conts">
+							<input
+								className="krds-input"
+								id="item-0-obligation"
+								name="item_0_obligationText"
+								type="text"
+							/>
+						</div>
+					</div>
+					<button
+						aria-label="Contract Baseline 확정"
+						className="krds-btn medium primary"
+						type="submit"
+					>
+						Contract Baseline 확정
+					</button>
+				</form>
 
 				<section
 					aria-labelledby="proposal-heading"
