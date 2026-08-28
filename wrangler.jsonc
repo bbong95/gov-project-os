@@ -15,6 +15,10 @@
 	"compatibility_flags": [
 		"global_fetch_strictly_public"
 	],
+	"vars": {
+		"NEXT_PUBLIC_SUPABASE_URL": "https://epudzahxpgmvnfdzahff.supabase.co",
+		"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ufPExYMTXdfTHrtsMxmkfw_LZWxVlBs"
+	},
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".open-next/assets"
