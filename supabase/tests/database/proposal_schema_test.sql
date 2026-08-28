@@ -10,6 +10,7 @@ select columns_are(
 	'proposals',
 	array[
 		'id', 'tenant_id', 'project_id', 'run_id', 'baseline_id', 'version',
+		'document_id', 'document_parse_id',
 		'status', 'created_by', 'created_at', 'updated_at'
 	],
 	'proposals columns'

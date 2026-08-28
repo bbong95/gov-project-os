@@ -6,10 +6,12 @@ import {
 } from "./support/local-supabase";
 
 test.describe.configure({ mode: "serial" });
+test.setTimeout(180_000);
 
 let fixture: LocalRfpFixture;
 
 test.beforeAll(async () => {
+	test.setTimeout(180_000);
 	fixture = await createLocalRfpFixture();
 });
 

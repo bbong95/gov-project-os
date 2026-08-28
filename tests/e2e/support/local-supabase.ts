@@ -54,6 +54,52 @@ async function requireSuccess(
 	}
 }
 
+// GoTrue admin createUser is slow on this filesystem: the user is created
+// (audit log fires) but the HTTP response can be cancelled at the 10s mark.
+// If the create call fails or times out, look the user up by email; retry the
+// create if the lookup shows the user is not present.
+async function createSyntheticAuthUser(
+	admin: SupabaseClient,
+	payload: { email: string; password: string; email_confirm: boolean },
+): Promise<{ id: string }> {
+	for (let attempt = 0; attempt < 3; attempt++) {
+		const { data, error } = await admin.auth.admin.createUser(payload);
+		if (data?.user) {
+			return { id: data.user.id };
+		}
+		const existing = await findAuthUserByEmail(admin, payload.email);
+		if (existing) {
+			return { id: existing.id };
+		}
+		if (error && !/timed out|timeout/i.test(error.message)) {
+			throw new Error(`Synthetic user setup failed: ${error.message}`);
+		}
+		await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+	}
+	const existing = await findAuthUserByEmail(admin, payload.email);
+	if (existing) {
+		return { id: existing.id };
+	}
+	throw new Error("Synthetic user setup failed: timed out and user not found");
+}
+
+async function findAuthUserByEmail(
+	admin: SupabaseClient,
+	email: string,
+): Promise<{ id: string } | null> {
+	for (let page = 1; page <= 10; page++) {
+		const { data } = await admin.auth.admin.listUsers({ page, perPage: 100 });
+		const match = data?.users.find((user) => user.email === email);
+		if (match) {
+			return { id: match.id };
+		}
+		if (!data || data.users.length < 100) {
+			return null;
+		}
+	}
+	return null;
+}
+
 async function cleanupFixture(
 	admin: SupabaseClient,
 	tenantIds: string[],
@@ -81,16 +127,13 @@ export async function createLocalAuthFixture(): Promise<LocalAuthFixture> {
 	const assignedProjectName = `합성 프로젝트 A ${suffix.slice(0, 8)}`;
 	const crossTenantProjectName = `합성 프로젝트 B ${suffix.slice(0, 8)}`;
 
-	const { data: userData, error: userError } = await admin.auth.admin.createUser({
+	const created = await createSyntheticAuthUser(admin, {
 		email,
 		password,
 		email_confirm: true,
 	});
-	if (userError || !userData.user) {
-		throw new Error(`Synthetic Auth user setup failed: ${userError?.message ?? "missing user"}`);
-	}
 
-	const userId = userData.user.id;
+	const userId = created.id;
 
 	try {
 		await requireSuccess(
@@ -272,45 +315,27 @@ export async function createLocalRfpFixture(): Promise<LocalRfpFixture> {
 	const crossTenantProjectId = randomUUID();
 	const trackedStoragePaths = new Set<string>();
 
-	const { data: assignedUserData, error: assignedUserError } =
-		await admin.auth.admin.createUser({
-			email: assignedEmail,
-			password: assignedPassword,
-			email_confirm: true,
-		});
-	if (assignedUserError || !assignedUserData.user) {
-		throw new Error(
-			`Synthetic assigned user setup failed: ${assignedUserError?.message ?? "missing user"}`,
-		);
-	}
+	const createdAssigned = await createSyntheticAuthUser(admin, {
+		email: assignedEmail,
+		password: assignedPassword,
+		email_confirm: true,
+	});
 
-	const { data: crossUserData, error: crossUserError } = await admin.auth.admin.createUser({
+	const createdCross = await createSyntheticAuthUser(admin, {
 		email: crossEmail,
 		password: crossPassword,
 		email_confirm: true,
 	});
-	if (crossUserError || !crossUserData.user) {
-		await admin.auth.admin.deleteUser(assignedUserData.user.id);
-		throw new Error(
-			`Synthetic cross user setup failed: ${crossUserError?.message ?? "missing user"}`,
-		);
-	}
-	const { data: viewerUserData, error: viewerUserError } = await admin.auth.admin.createUser({
+
+	const createdViewer = await createSyntheticAuthUser(admin, {
 		email: viewerEmail,
 		password: viewerPassword,
 		email_confirm: true,
 	});
-	if (viewerUserError || !viewerUserData.user) {
-		await admin.auth.admin.deleteUser(assignedUserData.user.id);
-		await admin.auth.admin.deleteUser(crossUserData.user.id);
-		throw new Error(
-			`Synthetic viewer user setup failed: ${viewerUserError?.message ?? "missing user"}`,
-		);
-	}
 
-	const assignedUserId = assignedUserData.user.id;
-	const viewerUserId = viewerUserData.user.id;
-	const crossUserId = crossUserData.user.id;
+	const assignedUserId = createdAssigned.id;
+	const viewerUserId = createdViewer.id;
+	const crossUserId = createdCross.id;
 	try {
 		await requireSuccess(
 			admin.from("tenants").insert([

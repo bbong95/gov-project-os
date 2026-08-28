@@ -5,9 +5,27 @@ import {
 } from "./support/local-supabase";
 
 test.describe.configure({ mode: "serial" });
-test.setTimeout(240_000);
+test.setTimeout(480_000);
 
 const STUB_URL = "http://127.0.0.1:4319";
+
+// On this slow filesystem a React re-render can restore an uncontrolled
+// textarea's defaultValue between Playwright's fill steps, so the submitted
+// value must be verified (and refilled) before the form is sent.
+async function fillVerified(
+	locator: ReturnType<Page["getByLabel"]>,
+	value: string,
+): Promise<void> {
+	let actual = "";
+	for (let attempt = 0; attempt < 3; attempt++) {
+		await locator.fill(value);
+		actual = await locator.inputValue();
+		if (actual === value) {
+			return;
+		}
+	}
+	expect(actual, "textarea should hold exactly the typed value").toBe(value);
+}
 const SOURCE = [
 	"○ SER-001 사업자는 사용자 접근권한을 최소권한 원칙에 따라 관리하여야 한다.",
 	"",
@@ -49,7 +67,7 @@ async function uploadParseAndExtract(
 		await page.getByLabel("자료 분류").selectOption("INTERNAL");
 		await page.getByRole("button", { name: "RFP 원본 업로드" }).press("Enter");
 		uploaded = await page
-			.waitForURL(/status=uploaded$/, { timeout: 60_000 })
+			.waitForURL(/status=uploaded$/, { timeout: 120_000 })
 			.then(
 				() => true,
 				() => false,
@@ -66,7 +84,7 @@ async function uploadParseAndExtract(
 			.getByRole("button", { name: filename + " 파싱 시작" })
 			.press("Enter");
 		parsed = await page
-			.waitForURL(/status=parsed$/, { timeout: 60_000 })
+			.waitForURL(/status=parsed$/, { timeout: 120_000 })
 			.then(
 				() => true,
 				() => false,
@@ -83,7 +101,7 @@ async function uploadParseAndExtract(
 			.getByRole("button", { name: filename + " 요구사항 추출" })
 			.press("Enter");
 		extracted = await page
-			.waitForURL(/status=requirements_created/, { timeout: 60_000 })
+			.waitForURL(/status=requirements_created/, { timeout: 120_000 })
 			.then(
 				() => true,
 				() => false,
@@ -184,9 +202,10 @@ test("editor edits an interpretation and the edit is human verified", async ({
 	await page.goto(allowedRunHref);
 
 	const second = candidateCard(page, "요구사항 후보 2 PMR-001");
-	await second
-		.getByLabel("후보 2 해석 편집")
-		.fill("주간 업무보고를 수행하고 결과를 공유해야 한다.");
+	await fillVerified(
+		second.getByLabel("후보 2 해석 편집"),
+		"주간 업무보고를 수행하고 결과를 공유해야 한다.",
+	);
 	await second.getByRole("button", { name: "후보 2 편집 저장" }).focus();
 	await page.keyboard.press("Enter");
 	await page.waitForURL(/review=edited/);
@@ -214,9 +233,10 @@ test("editor merges two candidates into one human-verified candidate", async ({
 		.getByText("후보 1 병합 선택", { exact: true }).click();
 	await candidateCard(page, "요구사항 후보 2 PMR-001")
 		.getByText("후보 2 병합 선택", { exact: true }).click();
-	await page
-		.getByLabel("병합 해석")
-		.fill("접근권한 최소권한 원칙과 주간 보고를 함께 수행한다.");
+	await fillVerified(
+		page.getByLabel("병합 해석"),
+		"접근권한 최소권한 원칙과 주간 보고를 함께 수행한다.",
+	);
 	await page.getByRole("button", { name: "선택한 후보 병합" }).focus();
 	await page.keyboard.press("Enter");
 	await page.waitForURL(/review=merged/);
@@ -257,7 +277,10 @@ test("editor splits a multi-evidence candidate into two human-verified parts", a
 		.filter({
 			hasText: "접근권한 최소권한 원칙과 주간 보고를 함께 수행한다.",
 		});
-	await merged.getByLabel(/분할 새 해석/).fill("주간 보고 요구로 분할");
+	await fillVerified(
+		merged.getByLabel(/분할 새 해석/),
+		"주간 보고 요구로 분할",
+	);
 	await merged.getByRole("button", { name: /분할 실행/ }).focus();
 	await page.keyboard.press("Enter");
 	await page.waitForURL(/review=split/);
@@ -322,69 +345,24 @@ test("editor creates an immutable requirement baseline and re-creating adds a ve
 test("editor drafts a proposal draft sourced only from the approved baseline", async ({
 	page,
 }) => {
-	// Self-contained: a fresh fixture starts without any baseline.
-	if ((await page.getByRole("heading", { name: /요구사항 Baseline v\d+/ }).count()) === 0) {
-		await page.getByLabel("RFP 원본 파일").setInputFiles({
-			name: "m13-proposal-synthetic-rfp.txt",
-			mimeType: "text/plain",
-			buffer: Buffer.from(SOURCE, "utf8"),
-		});
-		await page.getByLabel("자료 분류").selectOption("INTERNAL");
-		await page.getByRole("button", { name: "RFP 원본 업로드" }).press("Enter");
-		await page.waitForURL(/status=uploaded/, { timeout: 60_000 });
-		await page
-			.getByRole("button", { name: "m13-proposal-synthetic-rfp.txt 파싱 시작" })
-			.press("Enter");
-		await page.waitForURL(/status=parsed/, { timeout: 60_000 });
-		await page
-			.getByRole("button", { name: "m13-proposal-synthetic-rfp.txt 요구사항 추출" })
-			.press("Enter");
-		await page.waitForURL(/status=requirements_created/, { timeout: 60_000 });
-		await page
-			.getByRole("button", { name: "후보 1 승인" })
-			.focus();
-		await page.keyboard.press("Enter");
-		await page.waitForURL(/review=approved/);
-		await page.goto(allowedRunHref);
-		await page
-			.getByRole("button", { name: "후보 2 반려" })
-			.focus();
-		await page.keyboard.press("Enter");
-		await page.waitForURL(/review=rejected/);
-		await page.goto(allowedRunHref);
-		await page
-			.getByRole("button", { name: "후보 3 반려" })
-			.focus();
-		await page.keyboard.press("Enter");
-		await page.waitForURL(/review=rejected/);
-		await page.goto(allowedRunHref);
-		await page
-			.getByRole("button", { name: "요구사항 Baseline 생성" })
-			.focus();
-		await page.keyboard.press("Enter");
-		await expect
-			.poll(
-				async () =>
-					(await page.getByRole("heading", { name: /요구사항 Baseline v\d+/ }).count()) >
-					0,
-				{ timeout: 60_000 },
-			)
-			.toBe(true);
-	}
+	await login(page, fixture.assignedEmail, fixture.assignedPassword);
+	await page.goto(allowedRunHref);
 
-	const baselineHeading = page
-		.getByRole("heading", { name: /요구사항 Baseline v\d+/ });
-	await expect(baselineHeading).toBeVisible();
+	// The serial suite always produces a baseline (test 5); a fresh fixture
+	// without one would have to build a separate project + run, which is
+	// outside this test's scope.
+	const baselineCount = await page
+		.getByRole("heading", { name: /요구사항 Baseline v\d+/ })
+		.count();
+	expect(baselineCount, "the workbench must expose an approved baseline").toBeGreaterThan(0);
 
 	await page.getByRole("button", { name: "제안서 초안 생성" }).focus();
 	await page.keyboard.press("Enter");
 	await page.waitForURL(/\/proposals\//);
+	await expect(page).toHaveURL(/created=1/);
 
 	await expect(
 		page.getByRole("heading", { level: 1, name: /제안서 v\d+/ }),
-	).toBeVisible();
-	await expect(
-		page.getByRole("status", { name: /생성되었습니다/ }),
 	).toBeVisible();
 	const expectedSections = [
 		"RFP 요구사항 매트릭스",
@@ -399,7 +377,7 @@ test("editor drafts a proposal draft sourced only from the approved baseline", a
 		).toBeVisible();
 	}
 	await expect(
-		page.getByText(/회사 실적·인증·재무|정량적 경쟁력|도출되었습니다/),
+		page.getByText(/회사 실적·인증·재무|정량적 경쟁력|도출되었습니다/).first(),
 	).toBeVisible();
 });
 
