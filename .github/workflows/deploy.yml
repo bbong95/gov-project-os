@@ -63,13 +63,11 @@ jobs:
       - name: Package build output for artifact upload
         if: always()
         run: |
+          set -e
           echo "Packaging .open-next into a single tarball..."
-          # Resolve symlinks to real files so the upload contains actual content
-          tar -czf /tmp/opennext-build.tar.gz -C .open-next . 2>&1 || {
-            echo "tar failed; falling back to raw .open-next"
-            tar -cf /tmp/opennext-build.tar -C . .open-next
-          }
-          ls -la /tmp/opennext-build.tar.gz /tmp/opennext-build.tar 2>&1
+          tar -czf /tmp/opennext-build.tar.gz -C .open-next .
+          echo "===== packaged artifact ====="
+          ls -la /tmp/opennext-build.tar.gz
         shell: bash
       - uses: actions/upload-artifact@v4
         with:
