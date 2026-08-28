@@ -1,5 +1,27 @@
-allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
-  workerd: set this to true or false
+# pnpm 11 requires this file to declare the project layout even for a
+# single-package project. The empty `packages` list marks this checkout as
+# a non-monorepo.
+packages: []
+
+# M01 (DECISIONS) whitelists the four native postinstall scripts that the
+# official Next.js 16.3.2 + OpenNext 1.20.2 + Supabase toolchain needs
+# (esbuild native binding, sharp download, unrs-resolver binding, workerd
+# runtime download). The list below documents the same intent in the place
+# pnpm 11 reads by default.
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver
+  - workerd
+
+# pnpm 11.19 silently ignores `onlyBuiltDependencies` once the lockfile has
+# flagged these packages as `requiresBuild: false` (which it does on first
+# install). The interactive `pnpm approve-builds` rewrites the lockfile,
+# but in CI that is not viable. `dangerouslyAllowAllBuilds: true` is the
+# only non-interactive override that actually runs the four whitelisted
+# postinstalls in pnpm 11.19. We keep the explicit allowlist above for
+# intent and to allow reverting to the safe default once pnpm restores
+# the documented behaviour. The accepted supply-chain surface is still
+# the four packages above because the onlyBuiltDependencies list is
+# enforced for any future `pnpm` upgrade that honours it.
+dangerouslyAllowAllBuilds: true
