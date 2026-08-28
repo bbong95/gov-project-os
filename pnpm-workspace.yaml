@@ -1,9 +1,5 @@
-# Pre-approve build scripts for the packages C3 itself installs that need
-# them: `workerd` downloads the platform binary and `esbuild` downloads/
-# builds native bindings. Without these, pnpm 11+ aborts the install with
-# ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
-  esbuild: true
-  sharp: true
-  unrs-resolver: true
-  workerd: true
+  esbuild: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
+  workerd: set this to true or false
