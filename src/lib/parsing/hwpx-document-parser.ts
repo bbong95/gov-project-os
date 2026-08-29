@@ -11,6 +11,7 @@ import {
 	hashParsedSourceSpan,
 	normalizeSourceText,
 } from "./source-span";
+import { HwpStreamParser } from "./hwp-stream-parser";
 import { unzipSync, unzlibSync } from "fflate";
 
 const HWPX_MIME_TYPE = "application/hwp+zip";
