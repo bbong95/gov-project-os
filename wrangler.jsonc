@@ -19,6 +19,10 @@
 		"NEXT_PUBLIC_SUPABASE_URL": "https://epudzahxpgmvnfdzahff.supabase.co",
 		"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ufPExYMTXdfTHrtsMxmkfw_LZWxVlBs"
 	},
+	// SUPABASE_BACKEND_SECRET (service_role key) is supplied via
+	//   `wrangler secret put SUPABASE_BACKEND_SECRET` so it never appears
+	//   in source. The server-only lib reads it through getCloudflareContext
+	//   at request time.
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".open-next/assets"

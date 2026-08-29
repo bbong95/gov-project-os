@@ -117,15 +117,22 @@ jobs:
           ls -la .open-next | head -20
           test -f .open-next/worker.js && echo "worker.js OK" || (echo "worker.js MISSING"; exit 1)
         shell: bash
-      - name: Publish Supabase URL and anon key
+      - name: Publish Supabase URL, anon key, and service_role secret
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWR6YWh4cGdtdm5mZHphaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk1MDUsImV4cCI6MjEwMzQyNTUwNX0.DTfPf1TVfEw5SBLhnnhfiXtb7whTyl2vSHFYSjH2EI0
-        run: echo "vars configured"
+          SUPABASE_BACKEND_SECRET: ${{ secrets.SUPABASE_BACKEND_SECRET }}
+        run: |
+          if [ -z "$SUPABASE_BACKEND_SECRET" ]; then
+            echo "::error::SUPABASE_BACKEND_SECRET repository secret is not set. Persisted parse / contract / artifact / closeout calls will fail with persist_failed until it is configured."
+            exit 1
+          fi
+          echo "vars configured (SUPABASE_BACKEND_SECRET length=${#SUPABASE_BACKEND_SECRET})"
       - run: pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWR6YWh4cGdtdm5mZHphaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk1MDUsImV4cCI6MjEwMzQyNTUwNX0.DTfPf1TVfEw5SBLhnnhfiXtb7whTyl2vSHFYSjH2EI0
+          SUPABASE_BACKEND_SECRET: ${{ secrets.SUPABASE_BACKEND_SECRET }}
 
