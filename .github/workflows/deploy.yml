@@ -125,14 +125,14 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           if [ -z "$SUPABASE_BACKEND_SECRET" ]; then
-            echo "::error::SUPABASE_BACKEND_SECRET repository secret is not set. Persisted parse / contract / artifact / closeout calls will fail with persist_failed until it is configured."
+            echo "::error::Repository secret 'SUPABASE_BACKEND_SECRET' is not set. Add it at https://github.com/bbong95/gov-project-os/settings/secrets/actions"
             exit 1
           fi
           if [ -z "$GROQ_API_KEY" ]; then
-            echo "::error::GROQ_API_KEY repository secret is not set. LLM-driven requirement classification will fall back to fixture mode and fail the golden set Eval."
+            echo "::error::Repository secret 'GROQ_API_KEY' is not set. Add it at https://github.com/bbong95/gov-project-os/settings/secrets/actions"
             exit 1
           fi
-          echo "vars configured (SUPABASE_BACKEND_SECRET + GROQ_API_KEY lengths=${#SUPABASE_BACKEND_SECRET}+${#GROQ_API_KEY})"
+          echo "Repository secrets present (SUPABASE_BACKEND_SECRET length=${#SUPABASE_BACKEND_SECRET}, GROQ_API_KEY length=${#GROQ_API_KEY})."
       - run: pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
