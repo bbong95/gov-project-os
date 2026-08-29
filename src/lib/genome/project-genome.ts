@@ -83,6 +83,8 @@ export type ProjectGenomeDraft = {
 	modelFingerprint: string;
 };
 
+export type GenomeDetail = Awaited<ReturnType<typeof loadGenome>>;
+
 export type BuildGenomeInput = {
 	actorId: string;
 	tenantId: string;
