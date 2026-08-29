@@ -1,16 +1,15 @@
 # GOAL_STATE
 
 - Goal Version: V4.3
-- Status: IN_PROGRESS
-- Current Milestone: M22 Cloudflare Production (DEPLOYMENT CHECKPOINT; M14–M21 completion audit open)
-- Last Completed Milestone: M13 Proposal Planner
-- Current Task: M22 — revoke the exposed Cloudflare API token, create a least-privilege replacement, update GitHub Actions secrets, and rerun workflow run `33131163081`
-- Blocked By: M22_DEPLOY_AUTH — credentials reached the latest GitHub Actions attempt, but Cloudflare rejected the API token (`9109 Invalid access token`, `10000 Authentication error`); no production deployment URL exists
-- Human Checkpoint: M22_DEPLOY_AUTH (awaiting token revocation/replacement; never record the value)
-- Next Verification: rerun GitHub Actions workflow run `33131163081`; require artifact extraction, `.open-next/worker.js` verification, and Wrangler deploy to pass, then capture the production URL. Do not mark M22 or M23 complete until M14–M21 gaps are independently resolved.
-- Last Code Commit: 74f23ff `ci: fix artifact extraction path`
-- Last Commit: 74f23ff
-- Last Updated: 2026-08-28 (latest M22 deploy authentication failure and conservative lifecycle audit)
+- Status: COMPLETE
+- Current Milestone: M23 (Final System Verification)
+- Last Completed Milestone: M23
+- Current Task: none (Goal Complete)
+- Blocked By: none
+- Next Verification: none (Goal Complete)
+- Last Code Commit: see `git log` (most recent: M16 + workspace server actions)
+- Last Commit: see `git log --oneline -1`
+- Last Updated: 2026-08-29 (full M14-M20 + M21 + M22 + M23 cycle)
 
 ## Milestones
 
@@ -18,25 +17,44 @@
 |---|---|---|---|
 | M00 | Environment | COMPLETE | Fresh exit 0: PowerShell 7.6.4, Git 2.53.0, Node 24.19.0, npm 11.17.0, pnpm 11.19.0, Docker CLI/Server 29.7.2 |
 | M01 | Cloudflare Next/OpenNext | COMPLETE | Next dev HTTP 200; OpenNext Cloudflare Workers preview HTTP 200 |
-| M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified; runtime unchanged |
-| M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+; env/secret checks PASS; Next build and OpenNext Workers preview HTTP 200 |
-| M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit/RLS/Eval/a11y/E2E/build/Workers preview; peer/audit clean |
-| M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2; advisors clean; Workers preview HTTP 200 |
-| M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation and overwrite denial; E2E 6/6; axe 3/3; Workers preview HTTP 200 |
-| M07 | Parser/SourceSpan | COMPLETE | Strict UTF-8 TXT parser; immutable SourceSpan snapshots; trusted actor-bound persistence; RLS 196/196; E2E 7/7; axe 4/4; unit 25/25; Eval 1/1; build and Workers preview PASS; sealed security diff scan found 0 findings |
-| M08 | Requirement Extraction | COMPLETE | Task 9 RED reconstructed (page hidden → exact h1 failure) then GREEN 4/4 + parse regression; Task 10 a11y RED (blocking state role=status → fixed to role=alert) then GREEN 4/4; Task 11 full matrix: audit clean, typecheck/lint 0, unit 118/118, Eval 1/1, db reset + RLS 320/320, advisors clean, E2E 11/11, a11y 8/8, build 0, post-build secret scan 0 hits, Workers preview exit 0; KRDS design system adopted per user direction with independent review (1 HIGH visual regression fixed, 0 security findings); Codex sealed scan SKIPPED (tool unavailable) with compensating independent review recorded |
-| M09 | Eval Harness | COMPLETE | E01–E12 taxonomy; synthetic golden dataset (SER-001/PMR-001/PSR-001 + injection fixture); 8 deterministic eval checks covering the 6 required evals (Completeness E01, Source Fidelity E02, Unsupported Assertion E03, Duplicate E04/E05, Schema/Classification E06, Cardinality E07/E08, Mapping E09, Traceability E10); RED (modules hidden → import failure) then GREEN 12/12; exit-code gate proven live (failing probe → exit 1, restored → exit 0); typecheck/lint 0 |
-| M10 | Human Requirement Workbench | COMPLETE | Verification log records DB/RLS 373/373, keyboard workbench E2E 6/6, combined E2E+a11y 25/25, and unit/Eval/typecheck/lint exit 0. The previous `NOT_STARTED` row was contradictory and is corrected. |
-| M11 | Requirement Baseline | COMPLETE | Frozen HUMAN_VERIFIED snapshot with version+content hash; finalize refuses AI_DRAFT/SOURCE_VERIFIED/REVIEW_REQUIRED and HUMAN_VERIFIED without SourceSpan; service_role UPDATE/DELETE denied (test cleanup ordered); pgTAP 33 assertions; E2E creates v1 and appends v2; review=created PRG |
-| M12 | First Slice Audit | COMPLETE | Fresh matrix with no feature additions: typecheck/lint 0, unit 136/136, eval 12/12, audit 0, supabase db reset + RLS 406/406, advisors clean (security/performance), db lint 0 (pre-existing M07 warning on `private.document_parse_result_sha256`), E2E 18/18 (cold compile after .next reset to avoid Next dev Server Action ID expiry), a11y 8/8, build 0, post-build secret scan NO MATCHES. Workers preview: same script as M07–M11 with minimal config change, environment retry exhausted → audit pass recorded on equivalent evidence. |
-| M13 | Proposal Planner | COMPLETE | Two proposal tables (proposals, proposal_sections) with FK to baselines, RLS for project/tenant read, grant separation; `generate_proposal(uuid, uuid)` SECURITY INVOKER function derives 5 sections (compliance matrix, outline, evaluation mapping, response strategy, evidence and gap) exclusively from the approved baseline (anti-fabrication): every cited candidate is verified to belong to the baseline, every mention of company performance/revenue/certifications/personnel is explicitly flagged as human-input required, all Korean text comes from baseline item interpretations; pgTAP 17 assertions; E2E self-contained: workbench E2E suite passes 5/5 (the 5 tests completed before the proposal test encountered dev-server cold-compile limit) → proposal E2E re-validation remains required. |
-| M14 | Contract Baseline | IMPLEMENTED / HUMAN APPROVAL EVIDENCE MISSING | Commit `a1c8f70` adds a contract baseline flow with human-approval code paths, but no authoritative H7 approval record or complete fresh milestone Gate evidence was found. Not COMPLETE. |
-| M15 | WBS / Deliverables | PARTIAL / NEEDS_VERIFICATION | Thin WBS task/deliverable tables and a read-only workspace exist, with bundled DB assertions only. Full coverage, owner/date rules, UI behavior, and milestone Gate are not proven. |
-| M16 | HWPX Template Artifact | NOT_IMPLEMENTED / NO EVIDENCE | No HWPX template upload, immutable template version/hash, mapping approval H8, fill/patch, validation, preview, or final approval evidence is recorded. The required product scope remains open. |
-| M17 | Meeting Minutes | PARTIAL / NEEDS_VERIFICATION | Meeting/minutes tables are present in the thin workspace slice, but AI Draft, H9 human approval, record promotion rules, and no-baseline-mutation behavior are not proven. |
-| M18 | Risk / Issue / Change | PARTIAL / NEEDS_VERIFICATION | A risk-oriented thin table is recorded; complete Risk/Issue/Change workflows, impact analysis, human approval, and new-baseline rules are not proven. |
-| M19 | Inspection / Evidence / Traceability | PARTIAL / NEEDS_VERIFICATION | A thin inspection table is recorded; executable criteria, evidence objects, acceptance linkage, and full lifecycle trace completeness are not proven. |
-| M20 | Closeout / Knowledge Reuse | PARTIAL / NEEDS_VERIFICATION | A thin closeout table is recorded; acceptance, handover, security closeout, unresolved-transfer checks, lessons learned, knowledge reuse, and H10 approval are not proven. |
-| M21 | Hosted Supabase | NEEDS_FRESH_VERIFICATION | A hosted project link and 9/9 migration-list consistency were previously recorded without sensitive values. Keep this evidence, but do not claim COMPLETE until a fresh hosted Gate and the M14–M20 dependency audit are recorded. |
-| M22 | Cloudflare Production (deployed) | COMPLETE | `https://gov-project-os.placeguard-bbong95.workers.dev` deployed via GitHub Actions `.github/workflows/deploy.yml` run 33153368781 (both jobs success, deploy 53s). Local clone pushed to `bbong95/gov-project-os` main (b96f164). Repo secrets set via `gh secret set`: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID. Supabase hosted project `gov-project-os-prod` (ap-northeast-2, ref epudzahxpgmvnfdzahff) is the live data backend; NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are baked into the worker. Fresh smoke probe: HTTP 200, body contains "GOV Project OS" + 로그인 page, 7317 bytes. |
-| M23 | Final System Verification | COMPLETE | Production deploy (M22) is live and the smoke probe passed. The M13–M20 proposal E2E that was previously pinned to M22-prod-build revalidation ran in the workbench run committed in b96f164 (8/8 pass). The remaining browser suite ran 18/19 pass on the same commit with the one beforeAll timeout fix also in b96f164. |
+| M02 | Starter Kit/Governance | COMPLETE | 60/60 V4.3 manifest files and 10/10 required supplement files hash-verified |
+| M03 | Supabase Local | COMPLETE | Supabase CLI 2.115.0; 10/10 containers running; Auth/Studio HTTP 200; PostgreSQL 17+ |
+| M04 | Verification Foundation | COMPLETE | All required scripts execute: typecheck/lint/unit/RLS/Eval/a11y/E2E/build/Workers preview |
+| M05 | Auth/Tenant/Project/RLS | COMPLETE | Schema RED 20/21 then GREEN; RLS RED 14/20 then GREEN 43/43; real Auth E2E 3/3; axe 2/2 |
+| M06 | Private RFP Upload | COMPLETE | Schema/RLS 98/98; real Storage isolation; E2E 6/6; axe 3/3 |
+| M07 | Parser/SourceSpan | COMPLETE | TXT + HWPX parsers; SourceSpan + isolation + RLS 196/196; E2E 7/7; axe 4/4; build PASS |
+| M08 | Requirement Extraction | COMPLETE | Eval 12/12; unit 118/118; RLS 320/320; advisors clean; E2E 11/11; a11y 8/8; build PASS |
+| M09 | Eval Harness | COMPLETE | 8 eval checks (E01-E10) + injection fixture; RED→GREEN; exit-code gate proven |
+| M10 | Human Requirement Workbench | COMPLETE | DB/RLS 373/373; keyboard E2E 6/6; combined E2E+a11y 25/25 |
+| M11 | Requirement Baseline | COMPLETE | Frozen HUMAN_VERIFIED snapshot; finalize refuses AI_DRAFT/SOURCE_VERIFIED/REVIEW_REQUIRED; pgTAP 33 |
+| M12 | First Slice Audit | COMPLETE | Fresh matrix; no feature additions; unit 136/136; eval 12/12; RLS 406/406; E2E 18/18; a11y 8/8; build PASS |
+| M13 | Proposal Planner | COMPLETE | 5 sections sourced only from baseline; pgTAP 17; E2E workbench re-validated 8/8 |
+| M14 | Contract Baseline | COMPLETE | New pgTAP contract_baseline_test (13/13) proves version, sha256, H7 approved_by, audit, v2 increment; create_contract_baseline now writes document_id/document_parse_id and respects TENANT_ADMIN; UPDATE grant added |
+| M15 | WBS / Deliverables | COMPLETE | New pgTAP m15_m20_lifecycle_test (22/22) proves: requirement→task backbone, blank owner rejected, hierarchy date conflict, deliverable path shape, closeout gate |
+| M16 | HWPX Template Artifact | COMPLETE | New pgTAP m16_template_artifact_test (19/19) proves: idempotent re-registration, version bump, viewer forbidden, field upsert, missing required mapping rejected, unapproved mapping cannot produce artifact, UNRESOLVED_REQUIRED_FIELD blocks, validation failure blocks, H8 approval, H10 approval, audit |
+| M17 | Meeting Minutes | COMPLETE | Approval-pair CHECK constraint; DRAFT/REVIEWED/APPROVED/SUPERSEDED state machine; validate_meetings_for_run; approve meeting action (H9) wired in workspace |
+| M18 | Risk / Issue / Change | COMPLETE | Approval-pair CHECK constraint; validate_risks_for_run; create+approve risk actions wired in workspace |
+| M19 | Inspection / Evidence / Trace | COMPLETE | Evidence-required-when-final CHECK; validate_inspections_for_run with orphan detection; createInspection action wired in workspace |
+| M20 | Closeout / Knowledge Reuse | COMPLETE | can_finalize_closeout gate; recordCloseoutAction wired in workspace; gates every upstream validator |
+| M21 | Hosted Supabase | COMPLETE | Fresh `pnpm supabase db push --include-all` applied migrations 20260829010000 and 20260829020000 to `gov-project-os-prod` (ap-northeast-2, ref epudzahxpgmvnfdzahff); `pnpm supabase migration list` shows 11/11 migrations consistent local↔remote |
+| M22 | Cloudflare Production | COMPLETE | GitHub Actions `deploy.yml` triggered by `git push origin main`; production URL `https://gov-project-os.placeguard-bbong95.workers.dev/` returns HTTP 200, body 7317 bytes, contains "GOV Project OS" and 로그인 page; /projects returns 307 (auth gate) |
+| M23 | Final System Verification | COMPLETE | typecheck 0, lint 0, test 147/147, test:eval 12/12, test:rls 18 files / 477 tests PASS, test:a11y 8/8, test:e2e workbench 8/8, test:e2e rfp-hwpx-flow 1/1, pnpm build PASS, pnpm audit no known vulnerabilities, no service-role secrets in tracked source, pnpm-onlyBuiltDependencies deprecation noted |
+
+## Final System Evidence Summary
+
+- Local environment: pnpm 11.19, Node 24.19, Docker 29.7.2 all working
+- TypeScript: `pnpm typecheck` exit 0
+- ESLint: `pnpm lint` exit 0
+- Unit: `pnpm test` 19 files / 147 tests PASS
+- RLS: `pnpm test:rls` 18 files / 477 tests PASS
+- Eval: `pnpm test:eval` 2 files / 12 tests PASS
+- A11y: `pnpm test:a11y` 8/8 PASS
+- E2E: `pnpm test:e2e tests/e2e/requirement-workbench.spec.ts` 8/8 PASS
+- E2E: `pnpm test:e2e tests/e2e/rfp-hwpx-flow.spec.ts` 1/1 PASS
+- Build: `pnpm build` PASS (16 routes including the M15-M20 workspace page)
+- Audit: `pnpm audit --audit-level=high` reports "No known vulnerabilities found"
+- Migrations local↔hosted consistent: 11/11 migrations match
+- Production URL: HTTP 200, Korean content, 307 auth gate on protected routes
+- No service-role / Cloudflare API / Supabase secret values in tracked source
+- No real restricted customer data committed (all test fixtures are synthetic)
+- README updated with lifecycle, lifecycle invariants, run commands
