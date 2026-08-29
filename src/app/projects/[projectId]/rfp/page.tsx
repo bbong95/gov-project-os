@@ -55,6 +55,7 @@ const SUCCESS_MESSAGES: Record<string, string> = {
 	uploaded: "RFP 원본을 안전하게 저장했습니다.",
 	parsed: "RFP 원본 파싱을 완료했습니다.",
 	already_parsed: "동일한 파싱 결과가 이미 보관되어 있습니다.",
+	parse_dispatched: "큰 RFP 파일입니다. 백그라운드 작업이 시작되었고 Genome이 곧 채워집니다. 페이지를 새로 고치세요.",
 	requirements_created: "AI 초안 생성 완료",
 	requirements_reused: "동일 설정의 기존 결과 재사용",
 };
