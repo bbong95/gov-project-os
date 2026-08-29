@@ -9,6 +9,7 @@ import {
 	seedGenomeFromRfp,
 	loadGenome,
 } from "../../../../lib/genome/project-genome";
+import { draftProposalStrategy } from "../../../../lib/ai/proposal-strategy";
 
 const UUID_PATTERN =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -20,12 +21,15 @@ function readText(formData: FormData, key: string): string {
 
 function redirectToProject(
 	projectId: string,
-	kind: "genome" | "seed" | "load" | "fail" | "created" | "loaded",
-	extra?: { genomeId?: string },
+	kind: "genome" | "seed" | "load" | "proposal" | "fail" | "created" | "loaded",
+	extra?: { genomeId?: string; coverage?: string; gap?: string; partial?: string },
 ): never {
 	const params = new URLSearchParams();
-	params.set(kind, kind === "created" || kind === "loaded" ? "1" : kind);
+	params.set(kind, kind === "created" || kind === "loaded" || kind === "proposal" ? "1" : kind);
 	if (extra?.genomeId) params.set("genomeId", extra.genomeId);
+	if (extra?.coverage) params.set("coverage", extra.coverage);
+	if (extra?.gap) params.set("gap", extra.gap);
+	if (extra?.partial) params.set("partial", extra.partial);
 	const search = params.toString();
 	redirect(`/projects/${projectId}?${search}`);
 }
@@ -119,3 +123,111 @@ export async function listGenomesAction(projectId: string): Promise<
 		return [];
 	}
 }
+
+export async function draftProposalAction(formData: FormData): Promise<void> {
+	const projectId = readText(formData, "projectId");
+	const genomeId = readText(formData, "genomeId");
+	const projectType = readText(formData, "projectType") || "SW";
+	const provider = readText(formData, "provider") as "openai" | "groq" | "";
+	const fixtureMode = readText(formData, "fixtureMode") === "on";
+	if (!UUID_PATTERN.test(projectId) || !UUID_PATTERN.test(genomeId)) {
+		redirectToProject(projectId, "fail");
+	}
+	const supabase = await createServerSupabaseClient();
+	const { data: claimsData } = await supabase.auth.getClaims();
+	const actorId = typeof claimsData?.claims?.sub === "string" ? claimsData.claims.sub : "";
+	if (!actorId) redirect("/login");
+
+	const trusted = createTrustedSupabaseClient();
+	const { data: project } = await trusted
+		.from("projects")
+		.select("id, name, tenant_id")
+		.eq("id", projectId)
+		.maybeSingle();
+	if (!project) redirectToProject(projectId, "fail");
+
+	const detail = await loadGenome(project.tenant_id, projectId, genomeId).catch(() => null);
+	if (!detail) redirectToProject(projectId, "fail");
+
+	const strategy = await draftProposalStrategy({
+		projectName: project.name,
+		projectType: projectType as "SW" | "CLOUD" | "DR" | "ISP" | "PMO" | "OPS" | "OTHER",
+		requirements: detail.requirements.map((r) => ({ externalId: r.external_id, title: r.title })),
+		evaluationItems: detail.evaluationItems.map((e) => ({
+			externalId: e.external_id,
+			category: e.category,
+			title: e.title,
+			maxScore: e.max_score,
+		})),
+		promptVersion: "v1",
+		fixtureMode,
+		provider: provider || undefined,
+	});
+
+	const sectionIds: Record<string, string> = {};
+	for (const section of strategy.proposedSections) {
+		const { data, error } = await trusted.rpc("upsert_proposal_section", {
+			p_actor_id: actorId,
+			p_genome_id: genomeId,
+			p_section_key: section.sectionKey,
+			p_title: section.title,
+			p_body_md: section.outline.map((line, i) => `## ${i + 1}. ${line}`).join("\n\n"),
+			p_word_count: section.outline.join(" ").length,
+			p_prompt_version: "v1",
+			p_model_fingerprint: strategy.modelFingerprint,
+		});
+		if (error) {
+			redirectToProject(projectId, "fail", { genomeId });
+		}
+		if (typeof data === "string") {
+			sectionIds[section.sectionKey] = data;
+		}
+	}
+
+	let addressed = 0;
+	let partialCount = 0;
+	let gapCount = 0;
+	for (const row of strategy.complianceMatrix) {
+		const { error: rowError } = await trusted.rpc("upsert_compliance_row", {
+			p_actor_id: actorId,
+			p_genome_id: genomeId,
+			p_requirement_external_id: row.requirementExternalId,
+			p_evaluation_item_external_id: row.evaluationItemExternalId,
+			p_proposal_section_id: sectionIds[row.proposalSectionKey] ?? null,
+			p_status: row.status,
+			p_notes: row.notes,
+		});
+		if (rowError) {
+			redirectToProject(projectId, "fail", { genomeId });
+		}
+		if (row.status === "ADDRESSED") addressed += 1;
+		else if (row.status === "PARTIAL") partialCount += 1;
+		else if (row.status === "GAP") gapCount += 1;
+	}
+
+	for (const wp of strategy.winningPoints) {
+		const { error: wpError } = await trusted.rpc("upsert_winning_point", {
+			p_actor_id: actorId,
+			p_genome_id: genomeId,
+			p_theme: wp.theme,
+			p_rationale: wp.rationale,
+			p_target_evaluation_items: wp.targetEvaluationItems,
+		});
+		if (wpError) {
+			redirectToProject(projectId, "fail", { genomeId });
+		}
+	}
+
+	const total = strategy.complianceMatrix.length;
+	const coveragePct = total === 0 ? 0 : Math.round((addressed / total) * 100);
+
+	revalidatePath(`/projects/${projectId}`);
+	redirectToProject(projectId, "proposal", {
+		genomeId,
+		coverage: String(coveragePct),
+		gap: String(gapCount),
+		partial: String(partialCount),
+	});
+}
+
+
