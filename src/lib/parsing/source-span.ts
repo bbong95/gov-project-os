@@ -6,6 +6,8 @@ import {
 	type SourceLocation,
 } from "./document-parser";
 
+export type { ParsedSourceSpan };
+
 const UTF8_ENCODER = new TextEncoder();
 
 function isPositiveInteger(value: unknown): value is number {

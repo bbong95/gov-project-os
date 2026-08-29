@@ -57,12 +57,23 @@ export default async function ProjectsPage() {
 								<li className="structured-item" key={project.id}>
 									<div className="in">
 										<div className="card-body">
-											<Link className="c-text" href={`/projects/${project.id}/rfp`}>
-												<p className="c-tit">
-													<span className="span">{project.name}</span>
-												</p>
-												<p className="c-txt">RFP 원본 관리</p>
-											</Link>
+											<p className="c-tit">
+												<span className="span">{project.name}</span>
+											</p>
+											<div className="btn-wrap">
+												<Link
+													className="krds-btn small secondary"
+													href={`/projects/${project.id}/rfp`}
+												>
+													RFP 원본
+												</Link>
+												<Link
+													className="krds-btn small primary"
+													href={`/projects/${project.id}/genome`}
+												>
+													Project Genome
+												</Link>
+											</div>
 										</div>
 									</div>
 								</li>
