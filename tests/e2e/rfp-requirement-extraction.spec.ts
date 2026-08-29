@@ -148,7 +148,7 @@ test("editor creates one AI draft and reuses it with an authoritative parse-only
 	await page.waitForURL(/status=requirements_created/, { timeout: 60_000 });
 	await expect(page.getByRole("status")).toHaveText("AI 초안 생성 완료");
 	const resultLink = page.getByRole("link", {
-		name: filename + " AI 초안 결과 보기",
+		name: filename + " 요구사항 검토 계속",
 	});
 	const href = await resultLink.getAttribute("href");
 	expect(href).toMatch(new RegExp("/requirements/[0-9a-f-]{36}$"));

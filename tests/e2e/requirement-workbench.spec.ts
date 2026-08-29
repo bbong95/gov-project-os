@@ -110,7 +110,7 @@ async function uploadParseAndExtract(
 	expect(extracted, "extraction should complete").toBe(true);
 
 	const resultLink = page.getByRole("link", {
-		name: filename + " AI 초안 결과 보기",
+		name: filename + " 요구사항 검토 계속",
 	});
 	allowedRunHref = (await resultLink.getAttribute("href"))!;
 }

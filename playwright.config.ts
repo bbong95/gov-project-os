@@ -8,6 +8,11 @@ const localRequire = createRequire(resolve(process.cwd(), "package.json"));
 const nextDevServerTimeoutMs = Number(
 	process.env.PW_NEXT_DEV_TIMEOUT_MS ?? 600_000,
 );
+const appPort = Number(process.env.PW_APP_PORT ?? 3000);
+if (!Number.isInteger(appPort) || appPort < 1 || appPort > 65_535) {
+	throw new Error("PW_APP_PORT must be a valid TCP port.");
+}
+const appBaseUrl = "http://127.0.0.1:" + appPort;
 
 function backendSecret(): string {
 	if (process.env.SUPABASE_BACKEND_SECRET) {
@@ -41,7 +46,7 @@ export default defineConfig({
 		["html", { outputFolder: "temp/playwright-report", open: "never" }],
 	],
 	use: {
-		baseURL: "http://127.0.0.1:3000",
+		baseURL: appBaseUrl,
 		trace: "retain-on-failure",
 		screenshot: "only-on-failure",
 	},
@@ -61,8 +66,8 @@ export default defineConfig({
 			stderr: "pipe",
 		},
 		{
-			command: "pnpm dev --hostname 127.0.0.1",
-			url: "http://127.0.0.1:3000",
+			command: "pnpm dev --hostname 127.0.0.1 --port " + appPort,
+			url: appBaseUrl,
 			reuseExistingServer: false,
 			timeout: nextDevServerTimeoutMs,
 			stdout: "ignore",

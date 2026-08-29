@@ -115,7 +115,7 @@ test("editor reaches the AI draft read-only with semantic status and no violatio
 	await expectNoViolations(page);
 
 	const resultLink = page.getByRole("link", {
-		name: filename + " AI 초안 결과 보기",
+		name: filename + " 요구사항 검토 계속",
 	});
 	const href = await resultLink.getAttribute("href");
 	expect(href).toMatch(new RegExp("/requirements/[0-9a-f-]{36}$"));

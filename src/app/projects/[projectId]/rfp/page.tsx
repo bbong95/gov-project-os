@@ -6,6 +6,10 @@ import {
 	PRIVACY_CLASSIFICATIONS,
 	type PrivacyClassification,
 } from "../../../../lib/documents/rfp-original";
+import {
+	indexLatestRequirementRuns,
+	isParseableRfpFilename,
+} from "../../../../lib/parsing/rfp-workflow-state";
 import { createServerSupabaseClient } from "../../../../lib/supabase/server";
 import { logout } from "../../actions";
 
@@ -80,14 +84,12 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 		notFound();
 	}
 
-	const resultRunId =
-		typeof resultParams.runId === "string" ? resultParams.runId : null;
 	const [
 		projectMembershipResult,
 		tenantMembershipResult,
 		documentResult,
 		parseResult,
-		resultRunResult,
+		requirementRunResult,
 	] = await Promise.all([
 		supabase
 			.from("project_memberships")
@@ -114,14 +116,11 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 			.select("id, document_id, created_at")
 			.eq("project_id", projectId)
 			.order("created_at", { ascending: false }),
-		resultRunId
-			? supabase
-					.from("requirement_extraction_runs")
-					.select("id, document_id")
-					.eq("id", resultRunId)
-					.eq("project_id", projectId)
-					.maybeSingle()
-			: Promise.resolve({ data: null, error: null }),
+		supabase
+			.from("requirement_extraction_runs")
+			.select("id, document_id, created_at")
+			.eq("project_id", projectId)
+			.order("created_at", { ascending: false }),
 	]);
 	const canUpload =
 		projectMembershipResult.data?.role === "EDITOR" ||
@@ -144,6 +143,9 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 			});
 		}
 	}
+	const latestRequirementRunByDocumentId = indexLatestRequirementRuns(
+		requirementRunResult.data ?? [],
+	);
 
 	return (
 		<>
@@ -246,7 +248,7 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 					<h2 className="app-section-title" id="rfp-list-heading">
 						등록된 원본
 					</h2>
-					{documentResult.error || parseResult.error ? (
+					{documentResult.error || parseResult.error || requirementRunResult.error ? (
 						<p className="app-alert-danger" role="alert">
 							등록된 원본을 불러오지 못했습니다.
 						</p>
@@ -255,7 +257,8 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 							{documentResult.data.map((document) => {
 								const parse = latestParseByDocumentId.get(document.id);
 								const parsed = Boolean(parse);
-								const parseable = document.original_filename.toLowerCase().endsWith(".txt");
+								const parseable = isParseableRfpFilename(document.original_filename);
+								const requirementRun = latestRequirementRunByDocumentId.get(document.id);
 								const classification =
 									document.privacy_classification as PrivacyClassification;
 								const extractionState =
@@ -269,10 +272,6 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 											: { label: "정책상 AI 전송 차단", tone: "bg-light-danger" as const };
 								const canCallAi =
 									classification === "PUBLIC" || classification === "INTERNAL";
-								const showResult =
-									resultRunResult.data?.document_id === document.id &&
-									(statusCode === "requirements_created" ||
-										statusCode === "requirements_reused");
 								return (
 									<li className="structured-item" key={document.id}>
 										<div className="in">
@@ -321,21 +320,21 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 															SourceSpan 보기
 														</Link>
 													) : null}
-													{showResult && resultRunResult.data ? (
+													{requirementRun ? (
 														<Link
-															aria-label={document.original_filename + " AI 초안 결과 보기"}
+															aria-label={document.original_filename + " 요구사항 검토 계속"}
 															className="krds-btn small primary"
 															href={
 																"/projects/" +
 																project.id +
 																"/requirements/" +
-																resultRunResult.data.id
+																requirementRun.id
 															}
 														>
-															AI 초안 결과 보기
+															요구사항 검토 계속
 														</Link>
 													) : null}
-													{canUpload && parse && canCallAi ? (
+													{canUpload && parse && canCallAi && !requirementRun ? (
 														<form
 															action={"/projects/" + project.id + "/requirements/extract"}
 															method="post"
@@ -354,7 +353,7 @@ export default async function RfpPage({ params, searchParams }: RfpPageProps) {
 															</button>
 														</form>
 													) : null}
-													{canUpload && parseable ? (
+													{canUpload && parseable && !parsed ? (
 														<form
 															action={`/projects/${project.id}/documents/${document.id}/parse`}
 															method="post"
