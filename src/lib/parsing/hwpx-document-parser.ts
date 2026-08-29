@@ -11,41 +11,20 @@ import {
 	hashParsedSourceSpan,
 	normalizeSourceText,
 } from "./source-span";
+import { unzipSync, unzlibSync } from "fflate";
 
 const HWPX_MIME_TYPE = "application/hwp+zip";
 const PARSER_KEY = "hwpx-worker-native";
 const PARSER_VERSION = "1.0.0";
 const NORMALIZATION_VERSION = "nfc-hwpx-section-v1";
-const MAX_ARCHIVE_ENTRIES = 4_096;
-const MAX_ENTRY_BYTES = 32 * 1024 * 1024;
 const MAX_ARCHIVE_BYTES = 64 * 1024 * 1024;
-const MAX_COMPRESSION_RATIO = 200;
+const MAX_ENTRY_BYTES = 32 * 1024 * 1024;
 
-type ZipEntry = {
-	name: string;
-	flags: number;
-	method: number;
-	crc32: number;
-	compressedSize: number;
-	uncompressedSize: number;
-	localHeaderOffset: number;
-};
-
-function fail(code: "PARSE_FAILED" | "PARSE_LIMIT_EXCEEDED" = "PARSE_FAILED"): never {
-	throw new DocumentParseError(code);
+function fail(): never {
+	throw new DocumentParseError("PARSE_FAILED");
 }
 
-function u16(view: DataView, offset: number): number {
-	if (offset < 0 || offset + 2 > view.byteLength) fail();
-	return view.getUint16(offset, true);
-}
-
-function u32(view: DataView, offset: number): number {
-	if (offset < 0 || offset + 4 > view.byteLength) fail();
-	return view.getUint32(offset, true);
-}
-
-function safeArchivePath(name: string): boolean {
+function isSafeEntryName(name: string): boolean {
 	return (
 		name.length > 0 &&
 		name.length <= 1_024 &&
@@ -56,185 +35,6 @@ function safeArchivePath(name: string): boolean {
 		!name.includes("\0") &&
 		!/^[a-z]:/iu.test(name)
 	);
-}
-
-function decodeEntryName(bytes: Uint8Array, flags: number): string {
-	if ((flags & 0x800) === 0 && bytes.some((byte) => byte > 0x7f)) fail();
-	try {
-		return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-	} catch {
-		return fail();
-	}
-}
-
-function findEndOfCentralDirectory(bytes: Uint8Array): number {
-	const minimum = 22;
-	if (bytes.byteLength < minimum) return fail();
-	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-	const earliest = Math.max(0, bytes.byteLength - minimum - 65_535);
-	for (let offset = bytes.byteLength - minimum; offset >= earliest; offset -= 1) {
-		if (u32(view, offset) === 0x06054b50) return offset;
-	}
-	return fail();
-}
-
-function readZipDirectory(bytes: Uint8Array): ZipEntry[] {
-	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-	const eocd = findEndOfCentralDirectory(bytes);
-	const disk = u16(view, eocd + 4);
-	const centralDisk = u16(view, eocd + 6);
-	const entriesOnDisk = u16(view, eocd + 8);
-	const entryCount = u16(view, eocd + 10);
-	const centralSize = u32(view, eocd + 12);
-	const centralOffset = u32(view, eocd + 16);
-	const commentLength = u16(view, eocd + 20);
-	if (
-		disk !== 0 ||
-		centralDisk !== 0 ||
-		entriesOnDisk !== entryCount ||
-		entryCount === 0 ||
-		entryCount === 0xffff ||
-		centralSize === 0xffffffff ||
-		centralOffset === 0xffffffff ||
-		entryCount > MAX_ARCHIVE_ENTRIES ||
-		eocd + 22 + commentLength !== bytes.byteLength ||
-		centralOffset + centralSize !== eocd
-	) {
-		return fail(entryCount > MAX_ARCHIVE_ENTRIES ? "PARSE_LIMIT_EXCEEDED" : "PARSE_FAILED");
-	}
-
-	const entries: ZipEntry[] = [];
-	const names = new Set<string>();
-	let totalUncompressed = 0;
-	let offset = centralOffset;
-	for (let index = 0; index < entryCount; index += 1) {
-		if (u32(view, offset) !== 0x02014b50) return fail();
-		const flags = u16(view, offset + 8);
-		const method = u16(view, offset + 10);
-		const crc32 = u32(view, offset + 16);
-		const compressedSize = u32(view, offset + 20);
-		const uncompressedSize = u32(view, offset + 24);
-		const nameLength = u16(view, offset + 28);
-		const extraLength = u16(view, offset + 30);
-		const entryCommentLength = u16(view, offset + 32);
-		const startDisk = u16(view, offset + 34);
-		const localHeaderOffset = u32(view, offset + 42);
-		const recordLength = 46 + nameLength + extraLength + entryCommentLength;
-		if (offset + recordLength > centralOffset + centralSize) return fail();
-		if (
-			(flags & 1) !== 0 ||
-			(method !== 0 && method !== 8) ||
-			startDisk !== 0 ||
-			compressedSize === 0xffffffff ||
-			uncompressedSize === 0xffffffff ||
-			localHeaderOffset === 0xffffffff
-		) {
-			return fail();
-		}
-		if (uncompressedSize > MAX_ENTRY_BYTES) return fail("PARSE_LIMIT_EXCEEDED");
-		if (
-			uncompressedSize > 0 &&
-			(compressedSize === 0 || uncompressedSize / compressedSize > MAX_COMPRESSION_RATIO)
-		) {
-			return fail("PARSE_LIMIT_EXCEEDED");
-		}
-		totalUncompressed += uncompressedSize;
-		if (totalUncompressed > MAX_ARCHIVE_BYTES) return fail("PARSE_LIMIT_EXCEEDED");
-
-		const name = decodeEntryName(bytes.subarray(offset + 46, offset + 46 + nameLength), flags);
-		if (!safeArchivePath(name) || names.has(name)) return fail();
-		names.add(name);
-		entries.push({
-			name,
-			flags,
-			method,
-			crc32,
-			compressedSize,
-			uncompressedSize,
-			localHeaderOffset,
-		});
-		offset += recordLength;
-	}
-	if (offset !== centralOffset + centralSize) return fail();
-	return entries;
-}
-
-function crc32(bytes: Uint8Array): number {
-	let crc = 0xffffffff;
-	for (const byte of bytes) {
-		crc ^= byte;
-		for (let bit = 0; bit < 8; bit += 1) {
-			crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-		}
-	}
-	return (crc ^ 0xffffffff) >>> 0;
-}
-
-async function inflateRawBounded(compressed: Uint8Array, expectedSize: number): Promise<Uint8Array> {
-	let stream: ReadableStream<Uint8Array>;
-	try {
-		stream = new Blob([Uint8Array.from(compressed).buffer]).stream().pipeThrough(
-			new DecompressionStream("deflate-raw" as CompressionFormat),
-		);
-	} catch {
-		return fail();
-	}
-	const reader = stream.getReader();
-	const chunks: Uint8Array[] = [];
-	let total = 0;
-	try {
-		for (;;) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			total += value.byteLength;
-			if (total > expectedSize || total > MAX_ENTRY_BYTES) {
-				await reader.cancel();
-				return fail("PARSE_LIMIT_EXCEEDED");
-			}
-			chunks.push(value);
-		}
-	} catch {
-		return fail();
-	}
-	if (total !== expectedSize) return fail();
-	const output = new Uint8Array(total);
-	let offset = 0;
-	for (const chunk of chunks) {
-		output.set(chunk, offset);
-		offset += chunk.byteLength;
-	}
-	return output;
-}
-
-async function readZipEntry(archive: Uint8Array, entry: ZipEntry): Promise<Uint8Array> {
-	const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
-	const offset = entry.localHeaderOffset;
-	if (u32(view, offset) !== 0x04034b50) return fail();
-	const localFlags = u16(view, offset + 6);
-	const localMethod = u16(view, offset + 8);
-	const nameLength = u16(view, offset + 26);
-	const extraLength = u16(view, offset + 28);
-	if ((localFlags & 1) !== 0 || localFlags !== entry.flags || localMethod !== entry.method) return fail();
-	const nameStart = offset + 30;
-	const dataStart = nameStart + nameLength + extraLength;
-	const dataEnd = dataStart + entry.compressedSize;
-	if (dataEnd > archive.byteLength) return fail();
-	const localName = decodeEntryName(archive.subarray(nameStart, nameStart + nameLength), localFlags);
-	if (localName !== entry.name) return fail();
-	const compressed = archive.subarray(dataStart, dataEnd);
-	const output = entry.method === 0
-		? new Uint8Array(compressed)
-		: await inflateRawBounded(compressed, entry.uncompressedSize);
-	if (output.byteLength !== entry.uncompressedSize || crc32(output) !== entry.crc32) return fail();
-	return output;
-}
-
-function decodeUtf8(bytes: Uint8Array): string {
-	try {
-		return new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\uFEFF/u, "");
-	} catch {
-		return fail();
-	}
 }
 
 function decodeXmlText(text: string): string {
@@ -249,36 +49,90 @@ function decodeXmlText(text: string): string {
 				const value = code[1]?.toLowerCase() === "x"
 					? Number.parseInt(code.slice(2), 16)
 					: Number.parseInt(code.slice(1), 10);
-				if (!Number.isInteger(value) || value <= 0 || value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) return fail();
+				if (!Number.isInteger(value) || value <= 0 || value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) fail();
 				return String.fromCodePoint(value);
 			}
 		}
 	});
 }
 
+function decodeUtf8(bytes: Uint8Array): string {
+	try {
+		return new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/^\uFEFF/u, "");
+	} catch {
+		fail();
+	}
+}
+
 function paragraphTexts(xml: string): string[] {
 	const body = xml.replace(/^\s*<\?xml\s[^?]*\?>/u, "");
-	if (/<!DOCTYPE|<!ENTITY|<\?|<!\[CDATA\[/iu.test(body)) return fail();
+	if (/<!DOCTYPE\b|<!ENTITY\b|<!\[CDATA\[/iu.test(body)) fail();
 	const paragraphs: string[] = [];
 	const paragraphPattern = /<((?:[A-Za-z_][\w.-]*:)?p)\b[^>]*>([\s\S]*?)<\/\1\s*>/gu;
 	for (const paragraphMatch of body.matchAll(paragraphPattern)) {
 		const paragraph = paragraphMatch[2] ?? "";
 		const pieces: string[] = [];
-		const contentPattern = /<((?:[A-Za-z_][\w.-]*:)?t)\b[^>]*>([\s\S]*?)<\/\1\s*>|<(?:[A-Za-z_][\w.-]*:)?lineBreak\b[^>]*\/>|<(?:[A-Za-z_][\w.-]*:)?tab\b[^>]*\/>/gu;
-		for (const contentMatch of paragraph.matchAll(contentPattern)) {
-			const token = contentMatch[0];
-			if (/lineBreak\b/u.test(token)) pieces.push("\n");
-			else if (/(?:^|:)tab\b/u.test(token)) pieces.push("\t");
-			else {
-				const raw = contentMatch[2] ?? "";
-				if (/<[^>]+>/u.test(raw) || /&(?!(?:#x[0-9a-f]+|#[0-9]+|amp|lt|gt|quot|apos);)/iu.test(raw)) return fail();
-				pieces.push(decodeXmlText(raw));
+		// Extract text inside <t>...</t> blocks; non-text tags inside <t> are
+		// flattened (their own text content is preserved recursively). Unknown
+		// entities fail closed.
+		const tPattern = /<((?:[A-Za-z_][\w.-]*:)?t)\b[^>]*>([\s\S]*?)<\/\1\s*>/gu;
+		let cursor = 0;
+		for (const tMatch of paragraph.matchAll(tPattern)) {
+			const before = paragraph.slice(cursor, tMatch.index);
+			cursor = (tMatch.index ?? 0) + tMatch[0].length;
+			if (before) {
+				for (const inline of before.matchAll(/<[^>]+>/g)) {
+					const tag = inline[0];
+					if (/^<(?:[A-Za-z_][\w.-]*:)?lineBreak\b/u.test(tag)) pieces.push("\n");
+					else if (/^<(?:[A-Za-z_][\w.-]*:)?tab\b/u.test(tag)) pieces.push("\t");
+				}
 			}
+			const inner = tMatch[2] ?? "";
+			const flat = stripTagsToText(inner);
+			if (/\S/u.test(flat)) {
+				pieces.push(decodeXmlText(flat));
+			}
+		}
+		// Trailing tags after the last <t>...</t>
+		const tail = paragraph.slice(cursor);
+		for (const inline of tail.matchAll(/<[^>]+>/g)) {
+			const tag = inline[0];
+			if (/^<(?:[A-Za-z_][\w.-]*:)?lineBreak\b/u.test(tag)) pieces.push("\n");
+			else if (/^<(?:[A-Za-z_][\w.-]*:)?tab\b/u.test(tag)) pieces.push("\t");
 		}
 		const text = pieces.join("");
 		if (/\S/u.test(text)) paragraphs.push(text);
 	}
 	return paragraphs;
+}
+
+function stripTagsToText(inner: string): string {
+	// Replace <lineBreak/> with newline, <tab/> with tab, and remove every
+	// other tag. Recurse into children so text inside <sdt> / <bookmark>
+	// is preserved.
+	let out = "";
+	let i = 0;
+	while (i < inner.length) {
+		const lt = inner.indexOf("<", i);
+		if (lt < 0) {
+			out += inner.slice(i);
+			break;
+		}
+		out += inner.slice(i, lt);
+		const tagEnd = inner.indexOf(">", lt);
+		if (tagEnd < 0) {
+			out += inner.slice(lt);
+			break;
+		}
+		const tag = inner.slice(lt, tagEnd + 1);
+		if (/^<(?:[A-Za-z_][\w.-]*:)?lineBreak\b/u.test(tag)) out += "\n";
+		else if (/^<(?:[A-Za-z_][\w.-]*:)?tab\b/u.test(tag)) out += "\t";
+		else if (/^<\/?(?:[A-Za-z_][\w.-]*:)?(t|p|hp:r|pic|sdt|bookmark|control|mark|a|tbl|tr|td)\b/u.test(tag)) {
+			// paired tag — keep inner text
+		}
+		i = tagEnd + 1;
+	}
+	return out;
 }
 
 async function parseSection(bytes: Uint8Array, sectionIndex: number): Promise<ParsedSourceSpan[]> {
@@ -294,6 +148,42 @@ async function parseSection(bytes: Uint8Array, sectionIndex: number): Promise<Pa
 	);
 }
 
+function readCentralDirectoryForAudit(bytes: Uint8Array): Array<{ name: string; flags: number; uncompressedSize: number }> {
+	const minDirSize = 22;
+	if (bytes.byteLength < minDirSize) fail();
+	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+	let eocd = -1;
+	for (let offset = bytes.byteLength - minDirSize; offset >= 0 && offset >= bytes.byteLength - 65_557; offset -= 1) {
+		if (view.getUint32(offset, true) === 0x06054b50) {
+			eocd = offset;
+			break;
+		}
+	}
+	if (eocd < 0) fail();
+	const entryCount = view.getUint16(eocd + 10, true);
+	const centralOffset = view.getUint32(eocd + 16, true);
+	const out: Array<{ name: string; flags: number; uncompressedSize: number }> = [];
+	let off = centralOffset;
+	for (let i = 0; i < entryCount; i += 1) {
+		if (view.getUint32(off, true) !== 0x02014b50) fail();
+		const flags = view.getUint16(off + 8, true);
+		const uncompressedSize = view.getUint32(off + 24, true);
+		const nameLength = view.getUint16(off + 28, true);
+		const extraLength = view.getUint16(off + 30, true);
+		const commentLength = view.getUint16(off + 32, true);
+		const nameBytes = bytes.subarray(off + 46, off + 46 + nameLength);
+		let name = "";
+		try {
+			name = new TextDecoder("utf-8", { fatal: false }).decode(nameBytes);
+		} catch {
+			fail();
+		}
+		out.push({ name, flags, uncompressedSize });
+		off += 46 + nameLength + extraLength + commentLength;
+	}
+	return out;
+}
+
 export class HwpxDocumentParser implements DocumentParser {
 	supports(mimeType: string): boolean {
 		return mimeType === HWPX_MIME_TYPE;
@@ -304,23 +194,70 @@ export class HwpxDocumentParser implements DocumentParser {
 			throw new DocumentParseError("UNSUPPORTED_FORMAT");
 		}
 		const archive = new Uint8Array(input.bytes);
-		const entries = readZipDirectory(archive);
-		const entryByName = new Map(entries.map((entry) => [entry.name, entry]));
-		const mimeEntry = entryByName.get("mimetype");
-		if (!mimeEntry || decodeUtf8(await readZipEntry(archive, mimeEntry)) !== HWPX_MIME_TYPE) return fail();
+		if (archive.byteLength > MAX_ARCHIVE_BYTES) throw new DocumentParseError("PARSE_LIMIT_EXCEEDED");
+		if (archive.byteLength < 4) fail();
+		if (archive[0] !== 0x50 || archive[1] !== 0x4b || archive[2] !== 0x03 || archive[3] !== 0x04) fail();
 
-		const sections = entries
-			.map((entry) => {
-				const match = /^Contents\/section(\d+)\.xml$/u.exec(entry.name);
-				return match ? { entry, fileIndex: Number.parseInt(match[1] ?? "", 10) } : undefined;
-			})
-			.filter((value): value is { entry: ZipEntry; fileIndex: number } => value !== undefined)
-			.sort((left, right) => left.fileIndex - right.fileIndex);
-		if (sections.length === 0 || sections.some((section, index) => section.fileIndex !== index)) return fail();
+		// Pre-validate the central directory so encrypted entries, oversized
+		// entries, and other unsafe shapes are rejected before fflate has a
+		// chance to silently drop them. fflate's `unzipSync` is robust but
+		// does not surface every rejection as an exception, so we trust our
+		// own walk for security-critical checks.
+		const audit = readCentralDirectoryForAudit(archive);
+		for (const entry of audit) {
+			if ((entry.flags & 1) !== 0) throw new DocumentParseError("PARSE_FAILED");
+			if (entry.uncompressedSize > MAX_ENTRY_BYTES) {
+				throw new DocumentParseError("PARSE_LIMIT_EXCEEDED");
+			}
+		}
+
+		// fflate unzip handles per-entry inflate (raw deflate and zlib-wrapped
+		// deflate are both supported). The pre-validation above means the
+		// only remaining failure mode is corrupt compressed data, which we
+		// wrap to a single DocumentParseError.
+		let files: Record<string, Uint8Array>;
+		try {
+			files = unzipSync(archive, {
+				filter: (entry) => {
+					if (entry.name.length > 1_024) return false;
+					if (!isSafeEntryName(entry.name)) return false;
+					return true;
+				},
+			});
+		} catch {
+			fail();
+		}
+		for (const value of Object.values(files)) {
+			if (value.byteLength > MAX_ENTRY_BYTES) {
+				throw new DocumentParseError("PARSE_LIMIT_EXCEEDED");
+			}
+		}
+
+		const mimeEntry = files.mimetype;
+		if (!mimeEntry) fail();
+		if (decodeUtf8(mimeEntry) !== HWPX_MIME_TYPE) fail();
+
+		// Discover all Contents/sectionN.xml entries and require them to be
+		// numbered contiguously from 0.
+		const sectionKeys = Object.keys(files)
+			.filter((name) => /^Contents\/section(\d+)\.xml$/u.test(name))
+			.sort((left, right) => {
+				const li = Number.parseInt(/(\d+)/.exec(left)?.[1] ?? "0", 10);
+				const ri = Number.parseInt(/(\d+)/.exec(right)?.[1] ?? "0", 10);
+				return li - ri;
+			});
+		const sections: Array<{ entry: Uint8Array; fileIndex: number }> = [];
+		for (const key of sectionKeys) {
+			const fileIndex = Number.parseInt(/(\d+)/.exec(key)?.[1] ?? "", 10);
+			if (sections.length !== fileIndex) fail();
+			sections.push({ entry: files[key]!, fileIndex });
+		}
+		if (sections.length === 0) fail();
 
 		const spans: ParsedSourceSpan[] = [];
 		for (const [index, section] of sections.entries()) {
-			spans.push(...(await parseSection(await readZipEntry(archive, section.entry), index + 1)));
+			if (section.entry.byteLength > MAX_ENTRY_BYTES) throw new DocumentParseError("PARSE_LIMIT_EXCEEDED");
+			spans.push(...(await parseSection(section.entry, index + 1)));
 		}
 		for (const [index, span] of spans.entries()) span.ordinal = index + 1;
 		assertParsedSourceSpans(spans);
@@ -337,3 +274,7 @@ export class HwpxDocumentParser implements DocumentParser {
 }
 
 export { HWPX_MIME_TYPE };
+
+// Unzlib is exposed for the parser-registry plumbing if a future format ever
+// needs a one-shot deflate that fflate's unzip did not already cover.
+export { unzlibSync };
