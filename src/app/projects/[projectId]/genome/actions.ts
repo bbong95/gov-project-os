@@ -10,6 +10,7 @@ import {
 	loadGenome,
 } from "../../../../lib/genome/project-genome";
 import { draftProposalStrategy } from "../../../../lib/ai/proposal-strategy";
+import { draftBaselinePlan } from "../../../../lib/ai/baseline-plan";
 
 const UUID_PATTERN =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -227,6 +228,93 @@ export async function draftProposalAction(formData: FormData): Promise<void> {
 		coverage: String(coveragePct),
 		gap: String(gapCount),
 		partial: String(partialCount),
+	});
+}
+
+export async function draftBaselineAction(formData: FormData): Promise<void> {
+	const projectId = readText(formData, "projectId");
+	const genomeId = readText(formData, "genomeId");
+	const projectType = readText(formData, "projectType") || "SW";
+	const projectStartDay = Number(readText(formData, "projectStartDay") || "0");
+	const provider = readText(formData, "provider") as "openai" | "groq" | "";
+	const fixtureMode = readText(formData, "fixtureMode") === "on";
+	const redirectCoverage = readText(formData, "redirectCoverage");
+	const redirectGap = readText(formData, "redirectGap");
+	const redirectPartial = readText(formData, "redirectPartial");
+	if (!UUID_PATTERN.test(projectId) || !UUID_PATTERN.test(genomeId)) {
+		redirectToProject(projectId, "fail");
+	}
+	const supabase = await createServerSupabaseClient();
+	const { data: claimsData } = await supabase.auth.getClaims();
+	const actorId = typeof claimsData?.claims?.sub === "string" ? claimsData.claims.sub : "";
+	if (!actorId) redirect("/login");
+
+	const trusted = createTrustedSupabaseClient();
+	const { data: project } = await trusted
+		.from("projects")
+		.select("id, name, tenant_id")
+		.eq("id", projectId)
+		.maybeSingle();
+	if (!project) redirectToProject(projectId, "fail");
+
+	const detail = await loadGenome(project.tenant_id, projectId, genomeId).catch(() => null);
+	if (!detail) redirectToProject(projectId, "fail");
+
+	const plan = await draftBaselinePlan({
+		projectName: project.name,
+		projectType: projectType as "SW" | "CLOUD" | "DR" | "ISP" | "PMO" | "OPS" | "OTHER",
+		projectStartDay: Number.isFinite(projectStartDay) ? projectStartDay : 0,
+		requirements: detail.requirements.map((r) => ({
+			externalId: r.external_id,
+			title: r.title,
+			priority: r.priority as "CRITICAL" | "HIGH" | "NORMAL" | "LOW",
+		})),
+		deliverables: detail.deliverables.map((d) => ({
+			externalId: d.external_id,
+			title: d.title,
+			submissionPhase: d.submission_phase,
+		})),
+		promptVersion: "v1",
+		fixtureMode,
+		provider: provider || undefined,
+	}).catch(() => ({ wbs: [], inspectionCriteria: [], modelFingerprint: "error" }));
+
+	for (const task of plan.wbs) {
+		const { error: wbsError } = await trusted.rpc("upsert_wbs_task", {
+			p_actor_id: actorId,
+			p_genome_id: genomeId,
+			p_requirement_external_id: task.requirementExternalId,
+			p_task_title: task.taskTitle,
+			p_start_day: task.startDay,
+			p_end_day: task.endDay,
+			p_owner: task.owner,
+		});
+		if (wbsError) {
+			redirectToProject(projectId, "fail", { genomeId });
+		}
+	}
+
+	for (const criterion of plan.inspectionCriteria) {
+		const { error: icError } = await trusted.rpc("upsert_inspection_criterion", {
+			p_actor_id: actorId,
+			p_genome_id: genomeId,
+			p_requirement_external_id: criterion.requirementExternalId,
+			p_deliverable_external_id: criterion.deliverableExternalId,
+			p_criterion: criterion.criterion,
+			p_method: criterion.method,
+			p_acceptance: criterion.acceptance,
+		});
+		if (icError) {
+			redirectToProject(projectId, "fail", { genomeId });
+		}
+	}
+
+	revalidatePath(`/projects/${projectId}`);
+	redirectToProject(projectId, "proposal", {
+		genomeId,
+		coverage: redirectCoverage || "?",
+		gap: redirectGap || "?",
+		partial: redirectPartial || "?",
 	});
 }
 

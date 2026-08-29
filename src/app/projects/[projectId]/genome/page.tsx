@@ -5,6 +5,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createTrustedSupabaseClient } from "@/lib/supabase/trusted-server";
 import { logout } from "@/app/projects/actions";
 import {
+	draftBaselineAction,
 	draftProposalAction,
 	loadGenomeAction,
 	seedGenomeAction,
@@ -25,22 +26,44 @@ type GenomePageProps = {
 		coverage?: string;
 		gap?: string;
 		partial?: string;
+		baseline?: string;
+		wbsRows?: string;
+		inspectionRows?: string;
 	}>;
 };
 
 const UUID_PATTERN =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
-const STATUS_MESSAGES: Record<string, string> = {
+const STATUS_MESSAGES: Record<string, string | ((p: Record<string, string>) => string)> = {
 	seed: "Project Genome을 새로 생성했습니다. 결과는 아래에 표시됩니다.",
 	created: "Project Genome을 새로 생성했습니다.",
 	loaded: "Project Genome을 불러왔습니다.",
+	baseline: (p) => `WBS Baseline이 생성되었습니다. WBS ${p.wbsRows ?? "?"}행, 검사기준 ${p.inspectionRows ?? "?"}건.`,
 	fail: "Project Genome 작업에 실패했습니다. 서버 로그와 service_role 설정을 확인하세요.",
 };
 
 function firstStatus(value: string | string[] | undefined): string | null {
 	if (Array.isArray(value)) return value[0] ?? null;
 	return typeof value === "string" ? value : null;
+}
+
+function buildStatusMessage(
+	status: string | null,
+	sp: { coverage?: string; gap?: string; partial?: string; wbsRows?: string; inspectionRows?: string },
+): string | null {
+	if (!status) return null;
+	const template = STATUS_MESSAGES[status];
+	if (typeof template === "function") {
+		return template({
+			coverage: sp.coverage ?? "?",
+			gap: sp.gap ?? "?",
+			partial: sp.partial ?? "?",
+			wbsRows: sp.wbsRows ?? "?",
+			inspectionRows: sp.inspectionRows ?? "?",
+		});
+	}
+	return template ?? null;
 }
 
 type ParsedDocumentRow = {
@@ -121,6 +144,19 @@ type ProposalArtifacts = {
 	winningPoints: WinningPointRow[];
 	proposedSections: Array<{ id: string; section_key: string; title: string; body_md: string }>;
 	complianceReport: ComplianceReport;
+	wbsTasks: Array<{
+		external_id: string;
+		title: string;
+		owner: string | null;
+		start_offset_days: number | null;
+		end_offset_days: number | null;
+	}>;
+	inspectionCriteria: Array<{
+		external_id: string;
+		criterion: string;
+		method: string;
+		acceptance: string | null;
+	}>;
 };
 
 async function loadProposalArtifacts(
@@ -129,7 +165,13 @@ async function loadProposalArtifacts(
 	genomeId: string,
 ): Promise<ProposalArtifacts> {
 	const trusted = createTrustedSupabaseClient();
-	const [{ data: matrix }, { data: sections }, { data: report }] = await Promise.all([
+	const [
+		{ data: matrix },
+		{ data: sections },
+		{ data: report },
+		{ data: wbs },
+		{ data: criteria },
+	] = await Promise.all([
 		trusted.rpc("load_project_genome", {
 			p_tenant_id: tenantId,
 			p_project_id: projectId,
@@ -145,6 +187,16 @@ async function loadProposalArtifacts(
 			p_project_id: projectId,
 			p_genome_id: genomeId,
 		}),
+		trusted
+			.from("genome_wbs_tasks")
+			.select("external_id, title, owner, start_offset_days, end_offset_days")
+			.eq("genome_id", genomeId)
+			.order("external_id"),
+		trusted
+			.from("genome_inspection_criteria")
+			.select("external_id, criterion, method, acceptance")
+			.eq("genome_id", genomeId)
+			.order("external_id"),
 	]);
 	const winningPoints: WinningPointRow[] = [];
 	for (const row of ((matrix as { notes?: string }[] | null) ?? [])) {
@@ -182,6 +234,19 @@ async function loadProposalArtifacts(
 			gap: 0,
 			coverage: 0,
 		},
+		wbsTasks: (wbs ?? []) as Array<{
+			external_id: string;
+			title: string;
+			owner: string | null;
+			start_offset_days: number | null;
+			end_offset_days: number | null;
+		}>,
+		inspectionCriteria: (criteria ?? []) as Array<{
+			external_id: string;
+			criterion: string;
+			method: string;
+			acceptance: string | null;
+		}>,
 	};
 }
 
@@ -202,14 +267,14 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 
 	const seedOrLoadStatus = firstStatus(sp.seed ?? sp.created ?? sp.loaded ?? sp.fail);
 	const proposalStatus = firstStatus(sp.proposal);
+	const baselineStatus = firstStatus(sp.baseline);
 	const focusedGenomeId = firstStatus(sp.genomeId);
-	const statusMessage = seedOrLoadStatus
-		? STATUS_MESSAGES[seedOrLoadStatus] ?? null
-		: null;
+	const statusMessage = buildStatusMessage(seedOrLoadStatus, sp);
 	const proposalMessage =
 		proposalStatus === "proposal"
 			? `제안 Compliance Matrix가 생성되었습니다. ADDRESSED ${sp.coverage ?? "?"}% (PARTIAL ${sp.partial ?? "?"}건, GAP ${sp.gap ?? "?"}건).`
 			: null;
+	const baselineMessage = buildStatusMessage(baselineStatus, sp);
 
 	const parseByDocumentId = new Map<string, string>();
 	for (const p of data.parses) parseByDocumentId.set(p.document_id, p.id);
@@ -268,6 +333,11 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 				{proposalMessage ? (
 					<p className="app-status-success" role="status">
 						{proposalMessage}
+					</p>
+				) : null}
+				{baselineMessage ? (
+					<p className="app-status-success" role="status">
+						{baselineMessage}
 					</p>
 				) : null}
 
@@ -521,6 +591,45 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 										</ul>
 									</details>
 								) : null}
+
+								{proposalArtifacts.wbsTasks.length > 0 ? (
+									<details>
+										<summary>WBS 작업 ({proposalArtifacts.wbsTasks.length}건)</summary>
+										<ul className="app-span-list">
+											{proposalArtifacts.wbsTasks.map((t) => (
+												<li className="app-evidence-item" key={t.external_id}>
+													<p>
+														<strong>{t.title}</strong> ({t.external_id})
+													</p>
+													<p className="app-muted">
+														담당: {t.owner ?? "미정"} · 일정: D+
+														{t.start_offset_days ?? "?"} ~ D+
+														{t.end_offset_days ?? "?"}
+													</p>
+												</li>
+											))}
+										</ul>
+									</details>
+								) : null}
+
+								{proposalArtifacts.inspectionCriteria.length > 0 ? (
+									<details>
+										<summary>검사 기준 ({proposalArtifacts.inspectionCriteria.length}건)</summary>
+										<ul className="app-span-list">
+											{proposalArtifacts.inspectionCriteria.map((c) => (
+												<li className="app-evidence-item" key={c.external_id}>
+													<p>
+														<strong>{c.criterion}</strong>
+													</p>
+													<p className="app-muted">방법: {c.method}</p>
+													{c.acceptance ? (
+														<p className="app-muted">합격 기준: {c.acceptance}</p>
+													) : null}
+												</li>
+											))}
+										</ul>
+									</details>
+								) : null}
 							</>
 						) : null}
 
@@ -545,6 +654,44 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 								aria-label="제안 Compliance Matrix 자동 생성"
 							>
 								제안 Compliance Matrix + Winning Point 자동 생성
+							</button>
+						</form>
+
+						<form action={draftBaselineAction} className="app-form-grid">
+							<input type="hidden" name="projectId" value={projectId} />
+							<input type="hidden" name="genomeId" value={focusedGenome.id} />
+							<input type="hidden" name="projectType" value="DR" />
+							<input type="hidden" name="projectStartDay" value="0" />
+							<input type="hidden" name="provider" value="groq" />
+							<input
+								type="hidden"
+								name="redirectCoverage"
+								value={sp.coverage ?? ""}
+							/>
+							<input
+								type="hidden"
+								name="redirectGap"
+								value={sp.gap ?? ""}
+							/>
+							<input
+								type="hidden"
+								name="redirectPartial"
+								value={sp.partial ?? ""}
+							/>
+							<label className="app-checkbox">
+								<input
+									name="fixtureMode"
+									type="checkbox"
+									defaultChecked
+								/>
+								fixture 모드 (MVP3 Eval — 실제 LLM은 GROQ_API_KEY 있을 때)
+							</label>
+							<button
+								className="krds-btn secondary"
+								type="submit"
+								aria-label="MVP3 WBS + 검사기준 자동 생성"
+							>
+								MVP3 WBS + 검사기준 자동 생성
 							</button>
 						</form>
 					</section>
