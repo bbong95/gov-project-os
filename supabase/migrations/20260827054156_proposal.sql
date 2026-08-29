@@ -192,11 +192,19 @@ begin
 	end if;
 
 	insert into public.proposals (
-		tenant_id, project_id, run_id, baseline_id, created_by
+		tenant_id, project_id, document_id, document_parse_id, run_id, baseline_id, created_by
 	)
 	values (
 		v_baseline.tenant_id,
 		v_baseline.project_id,
+		(
+			select run.document_id from public.requirement_extraction_runs as run
+			where run.id = v_baseline.run_id
+		),
+		(
+			select run.document_parse_id from public.requirement_extraction_runs as run
+			where run.id = v_baseline.run_id
+		),
 		v_baseline.run_id,
 		v_baseline.id,
 		p_actor_id

@@ -89,8 +89,8 @@ revoke all privileges on table public.contract_baseline_items
 	from anon, authenticated, service_role;
 grant select on table public.contract_baselines to authenticated;
 grant select on table public.contract_baseline_items to authenticated;
-grant insert, select, delete on table public.contract_baselines to service_role;
-grant insert, select, delete on table public.contract_baseline_items to service_role;
+grant insert, select, update, delete on table public.contract_baselines to service_role;
+grant insert, select, update, delete on table public.contract_baseline_items to service_role;
 
 alter table public.requirement_extraction_runs
 	add constraint requirement_extraction_runs_run3_key
@@ -145,6 +145,12 @@ begin
 					and project_membership.user_id = p_actor_id
 					and project_membership.role in ('PROJECT_ADMIN'::public.membership_role, 'TENANT_ADMIN'::public.membership_role)
 			)
+			or exists (
+				select 1 from public.tenant_memberships as tenant_membership
+				where tenant_membership.tenant_id = run.tenant_id
+					and tenant_membership.user_id = p_actor_id
+					and tenant_membership.role = 'TENANT_ADMIN'::public.membership_role
+			)
 		);
 
 	if v_tenant_id is null then
@@ -172,11 +178,11 @@ begin
 	where run_id = p_run_id;
 
 	insert into public.contract_baselines (
-		tenant_id, project_id, run_id, proposal_id, version,
+		tenant_id, project_id, document_id, document_parse_id, run_id, proposal_id, version,
 		content_sha256, change_summary, approved_by
 	)
 	values (
-		v_tenant_id, v_project_id, p_run_id, p_proposal_id, v_next_version,
+		v_tenant_id, v_project_id, v_doc_id, v_parse_id, p_run_id, p_proposal_id, v_next_version,
 		repeat('0', 64), p_change_summary, p_actor_id
 	)
 	returning id into v_baseline_id;
