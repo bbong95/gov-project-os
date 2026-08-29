@@ -1,0 +1,156 @@
+name: Parse large HWPX RFP via fflate
+
+on:
+  workflow_dispatch:
+    inputs:
+      genome_id:
+        required: true
+        type: string
+      project_id:
+        required: true
+        type: string
+      tenant_id:
+        required: true
+        type: string
+      storage_bucket:
+        required: true
+        type: string
+      storage_path:
+        required: true
+        type: string
+      sha256:
+        required: true
+        type: string
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install fflate
+        run: npm install fflate@0.8.3
+      - name: Copy streaming parser
+        run: |
+          mkdir -p scripts
+          # Transform the .ts source into a runnable .mjs. The file is
+          # already ES2022 — we just need to drop the type-only import
+          # and copy the class.
+          node -e "
+          const fs = require('fs');
+          let s = fs.readFileSync('src/lib/parsing/hwp-stream-parser.ts','utf8');
+          // Strip the type-only import; the rest is plain ESM.
+          s = s.replace(/^export type.*?;\n/m, '');
+          fs.writeFileSync('scripts/hwp-stream-action.mjs', s);
+          "
+      - name: Run parser
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GOV_GENOME_ID: ${{ inputs.genome_id }}
+          GOV_PROJECT_ID: ${{ inputs.project_id }}
+          GOV_TENANT_ID: ${{ inputs.tenant_id }}
+          GOV_STORAGE_BUCKET: ${{ inputs.storage_bucket }}
+          GOV_STORAGE_PATH: ${{ inputs.storage_path }}
+          GOV_SHA256: ${{ inputs.sha256 }}
+        run: |
+          node --input-type=module -e "
+          import { readFile } from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+          import { createClient } from '@supabase/supabase-js';
+          import { unzipSync } from 'fflate';
+          import { HwpStreamParser } from './hwp-stream-action.mjs';
+
+          const supabase = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY,
+            { auth: { persistSession: false, autoRefreshToken: false } },
+          );
+
+          const { data: blob, error: dl } = await supabase.storage
+            .from(process.env.GOV_STORAGE_BUCKET)
+            .download(process.env.GOV_STORAGE_PATH);
+          if (dl || !blob) throw new Error('download failed: ' + (dl?.message ?? 'no data'));
+          const archive = new Uint8Array(await blob.arrayBuffer());
+          const sha = createHash('sha256').update(archive).digest('hex');
+          if (sha !== process.env.GOV_SHA256) {
+            throw new Error('sha256 mismatch: expected ' + process.env.GOV_SHA256 + ' got ' + sha);
+          }
+
+          const files = unzipSync(archive);
+          const mime = new TextDecoder('utf-8').decode(files.mimetype);
+          if (mime !== 'application/hwp+zip') {
+            throw new Error('bad mimetype: ' + mime);
+          }
+          const sectionKeys = Object.keys(files)
+            .filter((k) => /^Contents\/section(\d+)\.xml\$/.test(k))
+            .sort();
+          if (sectionKeys.length === 0) throw new Error('no sections');
+
+          const decoder = new TextDecoder('utf-8', { fatal: true });
+          const resultSha = createHash('sha256');
+          const allSpans = [];
+          for (let i = 0; i < sectionKeys.length; i += 1) {
+            const key = sectionKeys[i];
+            const xml = decoder.decode(files[key]).replace(/^\\uFEFF/u, '');
+            const CHUNK = 1024 * 1024;
+            const parser = new HwpStreamParser();
+            const sectionIndex = i + 1;
+            const emit = (p) => {
+              const text = p.textRuns.join('');
+              if (!/\\S/.test(text)) return;
+              resultSha.update(text + '\\n');
+              allSpans.push({
+                external_id: key.replace(/^Contents\\/section(\\d+)\\.xml\$/, '\$1') + '-' + (p.textRuns.length),
+                title: text.slice(0, 256),
+                original_text: text,
+                normalized_text: text,
+                requirement_type: 'FUNCTIONAL',
+                atomicity: 'ATOMIC',
+                priority: 'NORMAL',
+                mandatory: true,
+              });
+            };
+            for (let off = 0; off < xml.length; off += CHUNK) {
+              parser.feed(xml.slice(off, off + CHUNK), emit);
+            }
+            parser.flush(emit);
+          }
+          const resultSha256 = resultSha.digest('hex');
+          const spanCount = allSpans.length;
+
+          const summary = 'HWPX parsed via background action: ' + spanCount + ' spans, sha=' + resultSha256.slice(0, 12) + '...';
+          const { error: upErr } = await supabase
+            .from('project_genome')
+            .update({ summary })
+            .eq('id', process.env.GOV_GENOME_ID);
+          if (upErr) throw new Error('genome update: ' + upErr.message);
+
+          for (let i = 0; i < allSpans.length; i += 500) {
+            const batch = allSpans.slice(i, i + 500).map((s) => ({
+              tenant_id: process.env.GOV_TENANT_ID,
+              project_id: process.env.GOV_PROJECT_ID,
+              genome_id: process.env.GOV_GENOME_ID,
+              genome_version: 1,
+              external_id: s.external_id,
+              title: s.title,
+              original_text: s.original_text,
+              normalized_text: s.normalized_text,
+              requirement_type: s.requirement_type,
+              atomicity: s.atomicity,
+              priority: s.priority,
+              mandatory: s.mandatory,
+              rfp_page: null,
+              rfp_paragraph: null,
+            }));
+            const { error: reqErr } = await supabase
+              .from('genome_requirements')
+              .upsert(batch, { onConflict: 'tenant_id,project_id,genome_id,genome_version,external_id' });
+            if (reqErr) throw new Error('requirement upsert: ' + reqErr.message);
+          }
+
+          console.log(JSON.stringify({ ok: true, spanCount, resultSha256, summary }));
+          "
