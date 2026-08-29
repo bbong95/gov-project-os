@@ -11,6 +11,7 @@ import {
 	seedGenomeAction,
 	listGenomesAction,
 } from "./actions";
+import { addEvidenceAction } from "./evidence-actions";
 import { loadGenome } from "../../../../lib/genome/project-genome";
 
 type GenomePageProps = {
@@ -29,6 +30,7 @@ type GenomePageProps = {
 		baseline?: string;
 		wbsRows?: string;
 		inspectionRows?: string;
+		evidence?: string;
 	}>;
 };
 
@@ -265,11 +267,13 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 	const data = await loadPageData(projectId);
 	if (data.kind === "not_found") notFound();
 
-	const seedOrLoadStatus = firstStatus(sp.seed ?? sp.created ?? sp.loaded ?? sp.fail);
+const seedOrLoadStatus = firstStatus(sp.seed ?? sp.created ?? sp.loaded ?? sp.fail);
 	const proposalStatus = firstStatus(sp.proposal);
 	const baselineStatus = firstStatus(sp.baseline);
+	const evidenceStatus = firstStatus(sp.evidence);
 	const focusedGenomeId = firstStatus(sp.genomeId);
 	const statusMessage = buildStatusMessage(seedOrLoadStatus, sp);
+	const evidenceMessage = buildStatusMessage(evidenceStatus, sp);
 	const proposalMessage =
 		proposalStatus === "proposal"
 			? `제안 Compliance Matrix가 생성되었습니다. ADDRESSED ${sp.coverage ?? "?"}% (PARTIAL ${sp.partial ?? "?"}건, GAP ${sp.gap ?? "?"}건).`
@@ -338,6 +342,11 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 				{baselineMessage ? (
 					<p className="app-status-success" role="status">
 						{baselineMessage}
+					</p>
+				) : null}
+				{evidenceMessage ? (
+					<p className="app-status-success" role="status">
+						{evidenceMessage}
 					</p>
 				) : null}
 
@@ -694,6 +703,76 @@ export default async function GenomePage({ params, searchParams }: GenomePagePro
 								MVP3 WBS + 검사기준 자동 생성
 							</button>
 						</form>
+
+						<details open>
+							<summary>MVP5 Requirement → Evidence Trace</summary>
+							<p className="app-page-lead">
+								요구사항 ↔ 산출물 ↔ 검사기준 ↔ 증적의 단일 트리. 모든 evidence는
+								SourceSpan과 같은 project scope에서 sha256으로 잠겨 있습니다.
+							</p>
+							<form action={addEvidenceAction} className="app-form-grid">
+								<input type="hidden" name="projectId" value={projectId} />
+								<input type="hidden" name="genomeId" value={focusedGenome.id} />
+								<label>
+									요구사항 external_id
+									<input
+										name="requirementExternalId"
+										placeholder="SER-001"
+										maxLength={64}
+									/>
+								</label>
+								<label>
+									증적 제목
+									<input name="title" required maxLength={256} />
+								</label>
+								<label>
+									증적 종류
+									<select name="kind" required defaultValue="DOCUMENT">
+										<option value="DOCUMENT">문서</option>
+										<option value="SCREENSHOT">화면캡처</option>
+										<option value="TEST_REPORT">시험성적서</option>
+										<option value="MEETING">회의록</option>
+										<option value="EMAIL">이메일</option>
+										<option value="OTHER">기타</option>
+									</select>
+								</label>
+								<label>
+									Storage bucket
+									<input
+										name="storageBucket"
+										required
+										placeholder="genome-evidence"
+										maxLength={120}
+									/>
+								</label>
+								<label>
+									Storage path
+									<input
+										name="storagePath"
+										required
+										placeholder={`${projectId}/evidence/SER-001.pdf`}
+										maxLength={500}
+									/>
+								</label>
+								<label>
+									SHA-256
+									<input
+										name="sha256"
+										required
+										pattern="[0-9a-f]{64}"
+										placeholder="64자 hex"
+										maxLength={64}
+									/>
+								</label>
+								<button
+									className="krds-btn primary"
+									type="submit"
+									aria-label="Evidence 추가"
+								>
+									Evidence 추가 (sha256 잠금)
+								</button>
+							</form>
+						</details>
 					</section>
 				) : null}
 			</main>
