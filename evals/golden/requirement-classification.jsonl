@@ -1,0 +1,10 @@
+{"id":"REQ-SEC-001","requirementText":"○ SER-001 시스템은 사용자 접근권한을 관리하여야 한다","expectedKind":"SECURITY","expectedPriority":"HIGH","projectType":"SW"}
+{"id":"REQ-OPR-002","requirementText":"○ PMR-001 사업자는 주간 업무보고를 수행하여야 한다","expectedKind":"OPERATIONAL","expectedPriority":"NORMAL","projectType":"SW"}
+{"id":"REQ-PRF-003","requirementText":"○ PRF-001 API 응답은 200ms 이내여야 한다","expectedKind":"PERFORMANCE","expectedPriority":"HIGH","projectType":"SW"}
+{"id":"REQ-OPR-004","requirementText":"○ NFR-001 시스템은 99.9% 가용성을 보장하여야 한다","expectedKind":"OPERATIONAL","expectedPriority":"HIGH","projectType":"CLOUD"}
+{"id":"REQ-DAT-005","requirementText":"○ DAT-001 기존 데이터는 신규 시스템으로 마이그레이션 되어야 한다","expectedKind":"DATA","expectedPriority":"NORMAL","projectType":"SW"}
+{"id":"REQ-INT-006","requirementText":"○ IF-001 시스템은 외부 결제 모듈과 연동되어야 한다","expectedKind":"INTERFACE","expectedPriority":"NORMAL","projectType":"SW"}
+{"id":"REQ-FUN-007","requirementText":"○ FR-001 사용자는 문서를 업로드할 수 있다","expectedKind":"FUNCTIONAL","expectedPriority":"NORMAL","projectType":"SW"}
+{"id":"REQ-CMP-008","requirementText":"○ GR-001 시스템은 전자정부 프레임워크 컴플라이언스를 준수하여야 한다","expectedKind":"COMPLIANCE","expectedPriority":"HIGH","projectType":"SW"}
+{"id":"REQ-DEL-009","requirementText":"○ DEL-001 사업자는 매주 진도 보고서를 제출하여야 한다","expectedKind":"DELIVERY","expectedPriority":"NORMAL","projectType":"SW"}
+{"id":"REQ-SEC-010","requirementText":"○ NFR-002 시스템은 개인정보보호법을 준수하여야 한다","expectedKind":"COMPLIANCE","expectedPriority":"HIGH","projectType":"SW"}

@@ -122,12 +122,17 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWR6YWh4cGdtdm5mZHphaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk1MDUsImV4cCI6MjEwMzQyNTUwNX0.DTfPf1TVfEw5SBLhnnhfiXtb7whTyl2vSHFYSjH2EI0
           SUPABASE_BACKEND_SECRET: ${{ secrets.SUPABASE_BACKEND_SECRET }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           if [ -z "$SUPABASE_BACKEND_SECRET" ]; then
             echo "::error::SUPABASE_BACKEND_SECRET repository secret is not set. Persisted parse / contract / artifact / closeout calls will fail with persist_failed until it is configured."
             exit 1
           fi
-          echo "vars configured (SUPABASE_BACKEND_SECRET length=${#SUPABASE_BACKEND_SECRET})"
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "::error::GROQ_API_KEY repository secret is not set. LLM-driven requirement classification will fall back to fixture mode and fail the golden set Eval."
+            exit 1
+          fi
+          echo "vars configured (SUPABASE_BACKEND_SECRET + GROQ_API_KEY lengths=${#SUPABASE_BACKEND_SECRET}+${#GROQ_API_KEY})"
       - run: pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -135,4 +140,5 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://epudzahxpgmvnfdzahff.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwdWR6YWh4cGdtdm5mZHphaGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NDk1MDUsImV4cCI6MjEwMzQyNTUwNX0.DTfPf1TVfEw5SBLhnnhfiXtb7whTyl2vSHFYSjH2EI0
           SUPABASE_BACKEND_SECRET: ${{ secrets.SUPABASE_BACKEND_SECRET }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
